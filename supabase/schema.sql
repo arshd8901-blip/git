@@ -147,11 +147,201 @@ grant insert on public.reports to anon, authenticated;
 grant insert on public.contact_messages to anon, authenticated;
 
 -- =====================================================================
+-- v5: TEEN PROFILES + EMPLOYER TALENT SEARCH (safe to run again)
+--  * Profiles are private until the teen turns "visible" on. Only VERIFIED employers can see them.
+--  * Profiles have no email, phone, school, address or photo. Initials are drawn by the website.
+--  * An employer sends a "hire interest" request. The teen's contact email is revealed only after they accept.
+--  * Teens can block and report. You (admin) verify employers and can hide any profile.
+-- =====================================================================
+create table if not exists public.employers (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  company text not null check (char_length(company) between 2 and 80),
+  website text check (website is null or (website ~* '^https://' and char_length(website) <= 300)),
+  note text check (note is null or char_length(note) <= 500),
+  status text not null default 'pending' check (status in ('pending','verified','rejected')),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  display_name text not null check (char_length(display_name) between 2 and 40 and display_name ~ '^[[:alpha:]][[:alpha:] .''-]*$'),
+  age_group int not null check (age_group in (16,17,18)),
+  area text check (area is null or (char_length(area) <= 60 and area !~ '[0-9@:/]')),
+  bio text check (bio is null or (char_length(bio) <= 300
+      and bio !~* '(https?://|www\.|[[:alnum:]._-]+@[[:alnum:].-]+|(^|[^0-9])(\(?[0-9]{3}\)?[ .-]?[0-9]{3}[ .-]?[0-9]{4}|[0-9]{3}[ .-][0-9]{4})([^0-9]|$))')),
+  interests jsonb not null default '[]'::jsonb
+      check (jsonb_typeof(interests) = 'array' and jsonb_array_length(interests) <= 6
+             and interests <@ '["food","retail","kids","rec","office","events"]'::jsonb),
+  avail jsonb not null default '[]'::jsonb check (jsonb_typeof(avail) = 'array' and octet_length(avail::text) < 3000),
+  visible boolean not null default false,
+  share_resume boolean not null default false,
+  hidden_by_admin boolean not null default false,
+  consented_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+drop trigger if exists profiles_touch on public.profiles;
+create trigger profiles_touch before update on public.profiles for each row execute function public.touch_updated_at();
+
+-- A resume copy the teen chose to share. It never includes their email, phone or links.
+create table if not exists public.profile_resumes (
+  user_id uuid primary key references public.profiles(user_id) on delete cascade,
+  resume jsonb not null check (jsonb_typeof(resume) = 'object' and octet_length(resume::text) < 20000
+      and resume::text !~* '(https?://|www\.|[[:alnum:]._-]+@[[:alnum:].-]+\.[a-z]{2,}|(^|[^0-9])(\(?[0-9]{3}\)?[ .-]?[0-9]{3}[ .-]?[0-9]{4}|[0-9]{3}[ .-][0-9]{4})([^0-9]|$))'),
+  updated_at timestamptz not null default now()
+);
+
+-- Email the teen is willing to give an employer AFTER they accept a request.
+create table if not exists public.profile_contact (
+  user_id uuid primary key references public.profiles(user_id) on delete cascade,
+  email text not null check (char_length(email) <= 120 and email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$')
+);
+
+create table if not exists public.interest_requests (
+  id uuid primary key default gen_random_uuid(),
+  employer_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  teen_id uuid not null references public.profiles(user_id) on delete cascade,
+  company text,
+  website text,
+  message text not null check (char_length(message) between 10 and 300
+      and message !~* '(https?://|www\.|[[:alnum:]._-]+@[[:alnum:].-]+|(^|[^0-9])(\(?[0-9]{3}\)?[ .-]?[0-9]{3}[ .-]?[0-9]{4}|[0-9]{3}[ .-][0-9]{4})([^0-9]|$))'),
+  status text not null default 'pending' check (status in ('pending','accepted','declined')),
+  created_at timestamptz not null default now(),
+  unique (employer_id, teen_id)
+);
+create index if not exists interest_teen_idx on public.interest_requests(teen_id);
+
+create table if not exists public.blocks (
+  teen_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  employer_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (teen_id, employer_id)
+);
+
+create table if not exists public.profile_reports (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null,
+  reason text not null check (reason in ('Looks fake or inappropriate','Shares contact details','Seems under 16','Other')),
+  details text check (details is null or char_length(details) <= 1000),
+  reporter uuid default auth.uid(),
+  created_at timestamptz not null default now()
+);
+
+-- ---------- helper functions (they run with extra rights so the rules can check tables the caller can't read) ----------
+create or replace function public.is_verified_employer() returns boolean
+language sql security definer stable set search_path = public as $$
+  select exists (select 1 from public.employers where user_id = auth.uid() and status = 'verified')
+$$;
+create or replace function public.employer_can_view(teen uuid) returns boolean
+language sql security definer stable set search_path = public as $$
+  select public.is_verified_employer()
+     and exists (select 1 from public.profiles p where p.user_id = teen and p.visible and not p.hidden_by_admin)
+     and not exists (select 1 from public.blocks b where b.teen_id = teen and b.employer_id = auth.uid())
+$$;
+create or replace function public.employer_can_view_resume(teen uuid) returns boolean
+language sql security definer stable set search_path = public as $$
+  select public.employer_can_view(teen) and exists (select 1 from public.profiles p where p.user_id = teen and p.share_resume)
+$$;
+create or replace function public.employer_can_view_contact(teen uuid) returns boolean
+language sql security definer stable set search_path = public as $$
+  select public.is_verified_employer()
+     and exists (select 1 from public.interest_requests r where r.employer_id = auth.uid() and r.teen_id = teen and r.status = 'accepted')
+     and not exists (select 1 from public.blocks b where b.teen_id = teen and b.employer_id = auth.uid())
+$$;
+create or replace function public.my_requests_today() returns int
+language sql security definer stable set search_path = public as $$
+  select count(*)::int from public.interest_requests where employer_id = auth.uid() and created_at > now() - interval '1 day'
+$$;
+create or replace function public.stamp_request() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  select e.company, e.website into new.company, new.website from public.employers e where e.user_id = new.employer_id;
+  return new;
+end $$;
+drop trigger if exists interest_stamp on public.interest_requests;
+create trigger interest_stamp before insert on public.interest_requests for each row execute function public.stamp_request();
+revoke all on function public.is_verified_employer(), public.employer_can_view(uuid), public.employer_can_view_resume(uuid),
+  public.employer_can_view_contact(uuid), public.my_requests_today() from public;
+grant execute on function public.is_verified_employer(), public.employer_can_view(uuid), public.employer_can_view_resume(uuid),
+  public.employer_can_view_contact(uuid), public.my_requests_today() to authenticated;
+
+-- ---------- ROW LEVEL SECURITY ----------
+alter table public.employers enable row level security;
+alter table public.profiles enable row level security;
+alter table public.profile_resumes enable row level security;
+alter table public.profile_contact enable row level security;
+alter table public.interest_requests enable row level security;
+alter table public.blocks enable row level security;
+alter table public.profile_reports enable row level security;
+
+drop policy if exists "employers read own" on public.employers;
+create policy "employers read own" on public.employers for select to authenticated using (user_id = auth.uid());
+drop policy if exists "employers apply" on public.employers;
+create policy "employers apply" on public.employers for insert to authenticated with check (user_id = auth.uid() and status = 'pending');
+drop policy if exists "employers withdraw" on public.employers;
+create policy "employers withdraw" on public.employers for delete to authenticated using (user_id = auth.uid());
+
+drop policy if exists "profiles owner reads" on public.profiles;
+create policy "profiles owner reads" on public.profiles for select to authenticated using (user_id = auth.uid());
+drop policy if exists "profiles employers read" on public.profiles;
+create policy "profiles employers read" on public.profiles for select to authenticated using (public.employer_can_view(user_id));
+drop policy if exists "profiles owner writes" on public.profiles;
+create policy "profiles owner writes" on public.profiles for insert to authenticated with check (user_id = auth.uid() and hidden_by_admin = false);
+drop policy if exists "profiles owner updates" on public.profiles;
+create policy "profiles owner updates" on public.profiles for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists "profiles owner deletes" on public.profiles;
+create policy "profiles owner deletes" on public.profiles for delete to authenticated using (user_id = auth.uid());
+
+drop policy if exists "resume owner" on public.profile_resumes;
+create policy "resume owner" on public.profile_resumes for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists "resume employers read" on public.profile_resumes;
+create policy "resume employers read" on public.profile_resumes for select to authenticated using (public.employer_can_view_resume(user_id));
+
+drop policy if exists "contact owner" on public.profile_contact;
+create policy "contact owner" on public.profile_contact for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists "contact after accept" on public.profile_contact;
+create policy "contact after accept" on public.profile_contact for select to authenticated using (public.employer_can_view_contact(user_id));
+
+drop policy if exists "requests read own" on public.interest_requests;
+create policy "requests read own" on public.interest_requests for select to authenticated using (employer_id = auth.uid() or teen_id = auth.uid());
+drop policy if exists "verified employers send" on public.interest_requests;
+create policy "verified employers send" on public.interest_requests for insert to authenticated
+  with check (employer_id = auth.uid() and status = 'pending' and public.employer_can_view(teen_id) and public.my_requests_today() < 20);
+drop policy if exists "teens answer" on public.interest_requests;
+create policy "teens answer" on public.interest_requests for update to authenticated using (teen_id = auth.uid()) with check (teen_id = auth.uid() and status in ('accepted','declined'));
+drop policy if exists "employers withdraw request" on public.interest_requests;
+create policy "employers withdraw request" on public.interest_requests for delete to authenticated using (employer_id = auth.uid());
+
+drop policy if exists "teens manage blocks" on public.blocks;
+create policy "teens manage blocks" on public.blocks for all to authenticated using (teen_id = auth.uid()) with check (teen_id = auth.uid());
+
+drop policy if exists "signed-in users report profiles" on public.profile_reports;
+create policy "signed-in users report profiles" on public.profile_reports for insert to authenticated with check (true);
+
+-- ---------- PERMISSIONS (column-level where it matters) ----------
+revoke all on public.employers, public.profiles, public.profile_resumes, public.profile_contact,
+  public.interest_requests, public.blocks, public.profile_reports from anon, authenticated;
+grant select, delete on public.employers to authenticated;
+grant insert (user_id, company, website, note) on public.employers to authenticated;
+grant select, delete on public.profiles to authenticated;
+grant insert (user_id, display_name, age_group, area, bio, interests, avail, visible, share_resume, consented_at) on public.profiles to authenticated;
+grant update (display_name, age_group, area, bio, interests, avail, visible, share_resume) on public.profiles to authenticated;
+grant select, insert, update, delete on public.profile_resumes to authenticated;
+grant select, insert, update, delete on public.profile_contact to authenticated;
+grant select, delete on public.interest_requests to authenticated;
+grant insert (teen_id, message) on public.interest_requests to authenticated;
+grant update (status) on public.interest_requests to authenticated;
+grant select, insert, delete on public.blocks to authenticated;
+grant insert on public.profile_reports to authenticated;
+
+-- =====================================================================
 -- HOW YOU (THE ADMIN) USE IT
 --  * Table Editor -> jobs: new employer submissions have status = pending.
 --    Check the employer, then change status to approved (and tick employer_verified
 --    once you've confirmed the business is real). Set "rejected" to hide.
 --  * Table Editor -> job_private: the employer's contact email for each job.
 --  * Table Editor -> reports / contact_messages: read what people sent.
+--  * Table Editor -> employers: people who asked to browse teen profiles have status = pending.
+--    Check their company/website, then set status to verified (or rejected). Only verified can browse.
+--  * Table Editor -> profile_reports: reports about teen profiles. In profiles, tick hidden_by_admin to hide one.
 -- You can add your own listings by inserting a row in jobs with status = approved.
 -- =====================================================================

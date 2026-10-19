@@ -55,3 +55,11 @@ HOME-PAGE NUMBERS AND REVIEWS
   The home page shows job/employer counts only after at least 5 real approved jobs exist (change
   showStatsAfter in config.js). There are deliberately no testimonials or star ratings: add them only
   when they are from real people who gave permission.
+
+
+BEFORE YOU PROMOTE TEEN PROFILES (important)
+  * Have a lawyer review the privacy policy and terms. Profiles of 16-17-year-olds are sensitive, and rules about minors'
+    data (and employer contact with minors) differ by state. The text in the site is a draft template, not legal advice.
+  * Decide who is responsible for reviewing employers and reports, and how fast (aim for 1-2 days).
+  * Consider a short written employer agreement, and keep a record of who you verified and how.
+  * Photos are intentionally NOT supported (initials only). Don't add photos until you can moderate them.

@@ -67,3 +67,17 @@ NEW IN v4
   * Interest tiles and the map group jobs by keywords in the title/company/description. If a job lands in the
     wrong group, adjust its wording. No database change is needed.
   * Practice notes and checklist progress live in user_data (columns checklist, practice). Only each user can read them.
+
+
+TEEN PROFILES AND EMPLOYER ACCESS (v5)  -  YOUR NEW DAILY JOBS
+  1. VERIFY EMPLOYERS. Supabase -> Table Editor -> employers. New rows are status = pending. Look at the company and
+     website (open the site, check it is a real business, ideally reply to them through the Contact route you trust).
+     Set status = verified to let them browse teen profiles, or rejected. Only verified employers can see profiles.
+     To remove access later, set status back to rejected.
+  2. CHECK REPORTS. Table Editor -> profile_reports (profile_id is the teen's user_id). To hide a profile at once, open
+     Table Editor -> profiles, find that user_id and tick hidden_by_admin. The teen can't undo it. Also read contact_messages.
+  3. REMOVE ANYONE. Deleting a row in profiles removes that profile, its shared resume, contact email and requests.
+  4. LOOK AT NEW PROFILES SOMETIMES. Open the profiles table now and then. Anything fake, rude, or sharing contact info or a
+     school: tick hidden_by_admin. The database already blocks emails, links and phone numbers typed normally, but people
+     can write numbers out in words, so a human check matters.
+  5. Be strict with employers at the start. A small number of real, checked employers is better than many unchecked ones.

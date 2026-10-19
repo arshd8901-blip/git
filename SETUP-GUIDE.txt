@@ -1,4 +1,4 @@
-JOBLY SETUP GUIDE (version 4)
+JOBLY SETUP GUIDE (version 5)
 =============================
 
 WHAT'S IN THIS FOLDER
@@ -14,13 +14,13 @@ WHAT'S IN THIS FOLDER
   ADMIN-GUIDE.txt         how YOU approve jobs, read reports, and run the site day to day
   GROWTH-GUIDE.txt        email service, custom domain, analytics, legal checklist
 
-UPDATING FROM v3 (already live? do these 3 things)
-  1. Copy every file from this zip into your Jobly folder EXCEPT config.js. Keep your own config.js,
+UPDATING FROM v3 OR v4 (already live? do these 3 things)
+  1. Copy every file from this zip into your Jobly folder (the folder that contains .git), EXCEPT config.js. Keep your own config.js,
      it already has your Supabase values. (This zip does not even include config.js.)
   2. Supabase -> SQL Editor -> New query -> paste ALL of supabase/schema.sql -> Run.
-     This adds two small columns for the checklist and practice notes. It is safe to run again and
-     does not touch your existing jobs or users. (If you skip it, the site still works; only
-     checklist/practice sync to the account is held back and stays on the device.)
+     This adds the checklist/practice columns (v4) and the new profile, employer-access and request tables (v5). It is safe to run again and
+     does not touch your existing jobs or users. (If you skip it, the old features still work, but Profiles and
+     Find talent will show "run the latest schema.sql".)
   3. Source Control -> message -> Commit -> Sync Changes. Wait a minute, then hard-refresh the site.
   Optional: add these to your config.js (see config.example.js), inside the braces, with commas:
          contactEmail: "you@example.com",
@@ -68,6 +68,10 @@ PART 4: TEST EVERYTHING (use a private/incognito window)
   [ ] Contact page -> send a message -> check Table Editor -> contact_messages.
   [ ] Find my match: finish the quiz and see ranked jobs. Tick a checklist step, sign in elsewhere, and see it there.
   [ ] Open a job, press Share, paste the link in a new tab: the same job opens.
+  [ ] Profiles: sign in, open Get ready -> My profile, fill it in, tick "show to verified employers", Save.
+      Table Editor -> profiles shows your row. Try a bio with a phone number: it must be refused.
+  [ ] Talent: make a SECOND account, open More -> Find talent, ask for access. In Table Editor -> employers set
+      its status to verified, refresh, and browse. Send a request, then accept it from the first account.
   [ ] Toggle dark mode (moon button). On a phone, check the bottom tab bar.
   [ ] Visit a made-up address like /nope to see the friendly 404 page.
 
@@ -84,6 +88,8 @@ SECURITY MODEL (what the rules enforce)
   * Employer contact emails (job_private) are visible only to that employer and to you.
   * user_data is readable/writable only by its owner.
   * reports and contact_messages can be written by anyone but are never readable through the site.
+  * Profiles are visible only to the owner and to employers whose status you set to verified. Contact email is
+    readable by an employer only after the teen accepts. Employers cannot edit profiles or answer their own requests.
   * Database checks reject: ages below 16, apply links that aren't https, pay ranges that don't make sense.
   * Only the public (anon/publishable) key is in the website. Never put a secret key in config.js.
 

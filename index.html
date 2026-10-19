@@ -412,6 +412,23 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 @media(max-width:560px){.nav{min-height:60px}.hero{padding-top:36px}.hero-search{grid-template-columns:1fr}.filters,.row2,.row3,.board,.addrow,.grid4,.principles{grid-template-columns:1fr}.filters .wide{grid-column:auto}.tiles{grid-template-columns:repeat(2,1fr);gap:10px}.tile{padding:14px 12px}.job{grid-template-columns:auto 1fr;padding:16px}.job-right{grid-column:1/-1;align-items:start;text-align:left;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between}.weekly{max-width:none}.job-actions{justify-content:start}.contactband,.empband{flex-direction:column;align-items:start}.panel{padding:18px}#resume-preview{padding:22px}.cl li{grid-template-columns:auto 1fr}.cl li .btn{grid-column:1/-1;justify-self:start}.section{padding:44px 0}.sticker.s1{left:-8px}.q-nav .btn{flex:1}}
 @media print{body *{visibility:hidden}#resume-preview,#resume-preview *{visibility:visible}#resume-preview{position:absolute;left:0;top:0;width:100%;border:0;box-shadow:none;padding:0}.ph{display:none}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* ---- v5 profiles + talent ---- */
+.avatar.ini{letter-spacing:-.04em;font-size:1.05rem}.avatar.lg.ini{font-size:1.2rem}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.pcard{display:grid;gap:10px;align-content:start;padding:18px;background:var(--card);border:1.5px solid var(--line);border-radius:20px;box-shadow:var(--shadow2);min-width:0}
+.pcard .phead{display:flex;gap:12px;align-items:center}.pcard h3{font-size:1.05rem;margin:0}.pcard .sub2{font-size:.82rem;color:var(--muted)}
+.pcard .bio{font-size:.9rem;color:var(--ink);overflow-wrap:anywhere}.pcard .btn{justify-self:start}
+.req{display:grid;gap:8px;padding:14px;border:1.5px solid var(--line);border-radius:14px;background:var(--card);margin-top:10px}
+.req p{margin:0;font-size:.9rem;overflow-wrap:anywhere}.req .rh{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:800;background:var(--panel);border:1px solid var(--line)}
+.chip.accepted{background:var(--soft);color:var(--soft-ink);border-color:var(--soft-line)}.chip.declined{background:var(--badbg);color:var(--bad)}.chip.pending{background:var(--warnbg);color:var(--warn);border-color:var(--warnline)}
+.sres{background:#fff;color:#16201a;border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:6px}.sres h4{font-size:1.15rem;margin:0 0 6px}
+.sres h5{margin:12px 0 4px;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:#52605a}.sres ul{margin:0 0 0 18px;font-size:.9rem}.sres p{font-size:.9rem;margin:0}
+.safe{display:grid;gap:4px;font-size:.88rem}.safe li{margin-left:18px}
+.btn.danger{background:var(--badbg);color:var(--bad);border:1.5px solid var(--bad)}
+.rowbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.togrow{display:grid;gap:8px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel)}
 </style>
 </head>
 <body>
@@ -588,7 +605,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 </form>
 <div class="twocol" style="margin-top:26px">
 <div class="panel"><h3>Your Jobly account</h3><p class="sub">Sign in to keep your schedule, resume, tracker and saved searches across devices.</p><button class="btn" id="open-account" type="button">Sign in or create account</button><p class="hint" style="margin-top:12px" id="account-status">Authentication is not configured yet.</p><p class="hint" id="sync-status"></p></div>
-<div class="panel"><h3>Your privacy</h3><p class="sub">Jobly is built for minors, so it keeps data collection to the minimum.</p><ul style="margin-left:18px;font-size:.9rem"><li>No home address, birthday or ID number is ever requested.</li><li>Your location is only used in your browser to sort jobs by distance.</li><li>Without an account, your data stays on this device. With an account, it's saved privately to you only.</li></ul><div class="avail-actions"><button class="btn light small" id="erase" type="button">Erase my saved data</button><button class="btn light small" data-open-policy type="button">Privacy &amp; terms</button></div></div>
+<div class="panel"><h3>Your privacy</h3><p class="sub">Jobly is built for minors, so it keeps data collection to the minimum.</p><ul style="margin-left:18px;font-size:.9rem"><li>No home address, birthday or ID number is ever requested.</li><li>Your location is only used in your browser to sort jobs by distance.</li><li>Without an account, your data stays on this device. With an account, it's saved privately to you only.</li><li>Employers only see a profile if you create one and switch it on.</li></ul><div class="avail-actions"><button class="btn light small" id="erase" type="button">Erase my saved data</button><button class="btn light small" data-open-policy type="button">Privacy &amp; terms</button></div></div>
 </div>
 </div></section>
 
@@ -614,14 +631,15 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 <li>Tell a parent or trusted adult about interviews, and meet in public or at the workplace.</li></ul>
 <p class="hint" style="margin-top:10px">Scammed? Report it at reportfraud.ftc.gov and tell a trusted adult.</p></div></div></div>
 <div class="panel list" style="margin-top:18px"><h3>For parents &amp; guardians</h3><p class="sub">What Jobly does and doesn't do with your teen's information.</p>
-<div class="twocol"><div><strong>What we collect</strong><ul><li>An email address, only if your teen makes an account.</li><li>Their resume, availability and application tracker, only if they sign in. Otherwise it stays on their device.</li><li>No home address, birthday, ID number or photos.</li></ul></div>
-<div><strong>What we don't do</strong><ul><li>We don't sell data or show teens' information to employers.</li><li>Employers can't message teens through Jobly.</li><li>We never ask teens to pay for anything.</li></ul></div></div>
+<div class="twocol"><div><strong>What we collect</strong><ul><li>An email address, only if your teen makes an account.</li><li>Their resume, availability and application tracker, only if they sign in. Otherwise it stays on their device.</li><li>An optional profile (a name they type, general area, short bio, interests), only if they turn it on.</li><li>No home address, birthday, ID number or photos.</li></ul></div>
+<div><strong>What we don't do</strong><ul><li>We don't sell data. A teen's information is private unless they choose to make a profile and switch it on. Then only employers we've verified see the few details they chose.</li><li>Employers can't message teens directly. They send a request and your teen decides whether to answer. Contact details are shared only if your teen accepts.</li><li>We never ask teens to pay for anything.</li></ul></div></div>
 <p class="hint" style="margin-top:12px">Work rules for under-18 workers (work permits, hours, tasks) vary by state. Check your state's labor agency. To ask about or delete your teen's data, use the Contact page.</p></div>
 </div></section>
 
 <section class="section alt page" id="employers"><div class="wrap">
 <div class="section-head"><div><span class="eyebrow">For employers</span><h2>Hire a teen who's ready to work.</h2><p>Post a job for 16–18-year-olds. Every listing is reviewed by a person, and checked for age rules, before it goes live.</p></div></div>
 <div class="banner hidden" id="emp-gate"></div>
+<p class="hint" style="margin:-6px 0 14px">Looking for candidates instead of posting a job? <a href="#talent" style="text-decoration:underline">Find talent</a>.</p>
 <div class="twocol">
 <div class="panel"><h3>Post a job</h3><p class="sub">Jobs appear after review. This usually takes a few days.</p>
 <form class="form" id="emp-form"><fieldset id="emp-fields">
@@ -709,6 +727,55 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 <div class="hp" aria-hidden="true"><label>Leave this empty<input id="contact-website" tabindex="-1" autocomplete="off"></label></div>
 <button class="btn" type="submit">Send message</button><div class="notice" id="contact-notice" role="status"></div></form></div>
 </div></section>
+
+<section class="section alt page" id="profile"><div class="wrap">
+<div class="section-head"><div><span class="eyebrow">Your profile</span><h2>Let employers find you.</h2><p>Totally optional. Your profile stays private until you switch it on, and only employers we've checked can see it. There's no photo, school, address, phone number or email on it. Your picture is just your initials.</p></div></div>
+<div class="banner hidden" id="pf-gate"></div>
+<div class="twocol">
+<div class="panel"><h3>Your details</h3><p class="sub">Only what you type here is ever shown.</p>
+<form class="form" id="pf-form"><fieldset id="pf-fields">
+<label>Name shown to employers<input id="pf-name" required minlength="2" maxlength="40" autocomplete="off" placeholder="e.g. Jackson D."><span class="hint">First name and last initial is the safest choice.</span></label>
+<label>General area (city only)<input id="pf-area" maxlength="60" autocomplete="off" placeholder="e.g. Sacramento"></label>
+<label>About you<textarea id="pf-bio" maxlength="300" placeholder="e.g. I'm a junior who loves cafes and fixing bikes. I'm reliable and learn fast."></textarea><span class="hint"><span id="pf-bio-count">0</span>/300. Don't add phone numbers, emails or links.</span></label>
+<div><strong style="font-size:.85rem">Kinds of work you're interested in</strong><div class="checks" id="pf-interests" style="margin-top:6px"></div></div>
+<p class="hint">Your age group (<b id="pf-age"></b>) and the times you're free come from <a href="#find-jobs" style="text-decoration:underline">Find jobs</a>. Employers only see "after school" or "weekends".</p>
+<div class="togrow">
+<label class="checkrow"><input type="checkbox" id="pf-visible"><span>Show my profile to verified employers</span></label>
+<label class="checkrow"><input type="checkbox" id="pf-share"><span>Also share my resume (without my email, phone or links)</span></label>
+<span class="hint">Your shared resume is a copy. It updates each time you press Save.</span>
+</div>
+<label>Email to give an employer only after you accept their request<input id="pf-email" type="email" maxlength="120" autocomplete="email" placeholder="you@example.com"><span class="hint">Employers can't see this until you say yes. Leave it blank if you don't want to share one.</span></label>
+<label class="checkrow"><input type="checkbox" id="pf-consent"><span>I'm 16–18, and a parent or guardian knows I'm making this profile.</span></label>
+<div class="rowbtns"><button class="btn" type="submit">Save profile</button><button class="btn light danger" type="button" id="pf-delete">Delete profile</button></div>
+<div class="notice" id="pf-notice" role="status"></div>
+</fieldset></form></div>
+<div>
+<div class="panel"><h3>How employers see you</h3><p class="sub" id="pf-vis-note"></p><div id="pf-preview"></div></div>
+<div class="panel" style="margin-top:18px"><h3>Hire interest requests</h3><p class="sub">An employer can send a short note. Nothing is shared with them unless you accept.</p><div id="pf-inbox"><p class="hint">Sign in and save your profile to get requests.</p></div></div>
+<div class="panel list" style="margin-top:18px"><h3>Staying safe</h3><ul class="safe"><li>Never share your address, school, phone number or social media in your profile.</li><li>Real employers don't ask for money, gift cards or photos.</li><li>Tell a parent or trusted adult before any interview, and meet at the workplace or in public.</li><li>Use Block or Decline any time. You can switch your profile off or delete it whenever you like.</li></ul></div>
+</div></div>
+</div></section>
+
+<section class="section page" id="talent"><div class="wrap">
+<div class="section-head"><div><span class="eyebrow">For employers</span><h2>Find teens who want to work.</h2><p>Browse teens who chose to share a profile. Send a short note about a real opening. They decide whether to answer.</p></div></div>
+<div class="banner hidden" id="tl-gate"></div>
+<div class="panel hidden" id="tl-apply"><h3>Ask for access</h3><p class="sub">We check every business before it can see teen profiles. This usually takes a few days.</p>
+<form class="form" id="tl-apply-form"><fieldset id="tl-apply-fields">
+<div class="row2"><label>Company<input id="tl-company" required minlength="2" maxlength="80"></label><label>Website (https)<input id="tl-site" type="url" maxlength="300" placeholder="https://yourbusiness.com"></label></div>
+<label>Tell us about your business and who you'd hire<textarea id="tl-note" maxlength="500"></textarea></label>
+<label class="checkrow"><input type="checkbox" id="tl-agree"><span>I'll only contact teens about real jobs that follow child-labor laws, I won't ask for personal details, photos or money, and I won't move teens to other apps.</span></label>
+<div><button class="btn" type="submit">Request access</button></div><div class="notice" id="tl-apply-notice" role="status"></div>
+</fieldset></form></div>
+<div class="hidden" id="tl-browse">
+<div><div class="filters" style="grid-template-columns:2fr 1.4fr auto">
+<label>Search names, areas and bios<input id="tl-kw" maxlength="60" placeholder="e.g. barista, Sacramento"></label>
+<label>Interest<select id="tl-cat"><option value="">Any</option></select></label>
+<label class="checkrow" style="align-self:end;padding-bottom:10px"><input type="checkbox" id="tl-res"><span>Has a resume</span></label></div>
+<p class="hint" id="tl-count" style="margin-top:8px"></p></div>
+<div class="pgrid" id="tl-list" style="margin-top:16px"></div>
+<div class="panel" style="margin-top:18px"><h3>Requests you've sent</h3><p class="sub">Contact details appear here only after a teen accepts. You can send up to 20 requests a day.</p><div id="tl-sent"></div></div>
+</div>
+</div></section>
 </main>
 
 <footer class="footer"><div class="wrap footer-inner"><a href="#home" class="logo">Jobly<span>.</span></a><span>© <span id="year"></span> Jobly · For ages 16–18</span><span class="footer-links"><a href="#faq">FAQ</a><a href="#about">About</a><a href="#contact">Contact</a><button type="button" data-open-policy>Privacy &amp; terms</button><span id="foot-email"></span></span></div></footer>
@@ -740,6 +807,12 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 <div id="jm-body"></div>
 </div></div>
 
+<!-- Talent modal -->
+<div class="modal" id="talent-modal" role="dialog" aria-modal="true" aria-labelledby="tm-title"><div class="modal-card">
+<div class="modal-head"><div style="display:flex;gap:14px;align-items:center"><div id="tm-avatar"></div><div><h2 id="tm-title"></h2><div class="muted" id="tm-sub"></div></div></div><button class="close" data-close aria-label="Close" type="button">×</button></div>
+<div id="tm-body"></div>
+</div></div>
+
 <!-- Policy modal -->
 <div class="modal" id="policy-modal" role="dialog" aria-modal="true" aria-labelledby="pm-title"><div class="modal-card">
 <div class="modal-head"><h2 id="pm-title">Privacy &amp; terms (draft)</h2><button class="close" data-close aria-label="Close" type="button">×</button></div>
@@ -749,7 +822,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 <li>Jobly is for people aged 16–18.</li>
 <li>We ask only for an email address to create an account. We don't ask for your home address, birthday, or any ID number.</li>
 <li>Without an account, your resume, availability and tracker stay on your own device. If you sign in, they're saved to your account so they work on other devices, and only you can read them.</li>
-<li>We don't sell your information or show it to employers. Employers can't see your location or contact you through Jobly.</li>
+<li>We don't sell your information. Employers can't see anything about you unless you make a profile and switch it on. Then only employers we've verified can see what you chose to show: the name you typed, a general area, a short bio, your interests, when you're free, and a resume if you share one. There's no photo, school, address, phone number or email.</li>
+<li>Employers can't message you directly. They send a request through Jobly and you decide. Your email is shared with an employer only if you accept their request, and you can block, decline, switch your profile off or delete it at any time.</li>
 <li>Reports and messages you send us are stored so we can respond to them.</li>
 <li>You can erase your saved data at any time with "Erase my saved data". To delete your account, use the Contact page and choose "Delete my data". Parents or guardians may also contact us.</li></ul>
 <h3>Terms</h3>
@@ -757,7 +831,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 <li>Jobly doesn't charge job seekers and will never ask you to pay to get a job.</li>
 <li>Employers must give accurate information, follow child-labor laws, and never charge applicants. We may reject or remove any listing.</li>
 <li>Child-labor rules vary by state and job type. Check your state's labor agency or the U.S. Department of Labor before accepting work.</li>
-<li>Be honest in your resume and applications, and report suspicious listings.</li></ul>
+<li>Be honest in your resume and applications, and report suspicious listings.</li>
+<li>Employers who ask to see profiles must be approved by us, may use profiles only to offer real jobs that follow child-labor laws, and must not ask teens for personal details, photos or money, or move them to other apps. We can remove any profile or employer at any time.</li></ul>
 </div></div>
 
 <nav class="tabbar" aria-label="Quick navigation">
@@ -1258,7 +1333,7 @@ function showUser(user) {
   $("open-login").textContent = user ? "Account" : "Sign in";
   $("account-status").textContent = user ? "Signed in as " + (user.email || "your account") + (user.email_confirmed_at ? " · Email verified" : " · Check your email for verification") : (authConfigured ? "You are signed out." : "Authentication is not configured yet.");
   if (authMode !== "update") setAuthMode(authMode === "reset" || authMode === "signup" ? authMode : "signin"); else refreshAuthView();
-  renderEmpGate();
+  renderEmpGate(); if (changed) onUserChanged();
   if (user && changed && authClient && authMode !== "update") setTimeout(async () => { await pullCloud(user); loadMySubs(); }, 0);
   if (!user) { syncedUser = null; setSync(""); }
 }
@@ -1294,8 +1369,8 @@ if (authClient) {
 
 /* ---------- navigation + menu ---------- */
 const NAV_MAIN = [["find-jobs", "Find jobs"], ["match", "Find my match"], ["resume", "Resume builder"], ["tracker", "My applications"]];
-const NAV_READY = [["checklist", "First-job checklist"], ["interview", "Interview practice"], ["learn", "Guides"]];
-const NAV_MORE = [["seasonal", "Summer & seasonal"], ["safety", "Safety & parents"], ["employers", "For employers"], ["faq", "FAQ"], ["about", "About"], ["contact", "Contact"]];
+const NAV_READY = [["checklist", "First-job checklist"], ["interview", "Interview practice"], ["profile", "My profile"], ["learn", "Guides"]];
+const NAV_MORE = [["seasonal", "Summer & seasonal"], ["safety", "Safety & parents"], ["employers", "For employers"], ["talent", "Find talent"], ["faq", "FAQ"], ["about", "About"], ["contact", "Contact"]];
 function renderNav() {
   const nav = $("navlinks"); nav.replaceChildren(); NAV_MAIN.forEach(([id, l]) => nav.append(el("a", { href: "#" + id, text: l })));
   [["Get ready", NAV_READY], ["More", NAV_MORE]].forEach(([label, items]) => nav.append(el("details", { class: "dd" }, el("summary", {}, label, icon("chev")), el("div", { class: "dd-menu" }, items.map(([id, l]) => el("a", { href: "#" + id, text: l }))))));
@@ -1471,6 +1546,8 @@ const FAQS = [
     ["How old do I have to be?", "Jobly is for ages 16–18. Every listing shows the youngest age the employer hires, and jobs that need an older age than the one you pick are hidden."],
     ["Do I need a work permit?", "It depends on your state and age. Some states require a work permit (sometimes called working papers) for workers under 18. Your school counselor or your state labor agency can tell you. Check before your first day."],
     ["How many hours can I work?", "Federal law mostly limits hours for workers under 16. Some states also limit hours for 16- and 17-year-olds, especially on school nights. Check your state's rules and pick a schedule you can balance with school."],
+    ["What is a profile, and who can see it?", "A profile is optional. You write a name (first name and last initial is safest), a general area, a short bio and your interests. Your picture is your initials. It stays private until you switch it on, and then only employers we've verified can see it. Never include your school, address, phone number or social media."],
+    ["How do I keep my profile safe?", "Leave out contact details, and never send money, gift cards or photos. Decline or block anyone who makes you uncomfortable, tell a parent or trusted adult, and tell us on the Contact page. You can switch your profile off or delete it any time."],
     ["Is Jobly free?", "Yes. Jobly never charges job seekers and will never ask you to pay to get a job."],
     ["What does \"Verified\" mean?", "A Verified badge means we confirmed the business is real. Listings without it say \"Not yet verified.\" That doesn't mean it's a scam, but be extra careful and read the safety tips."],
     ["What if a job asks me for money?", "Walk away. Real employers don't charge fees, ask you to buy equipment, or send you a check to cash. Use \"Report this listing\" and tell a trusted adult. You can also report scams at reportfraud.ftc.gov."],
@@ -1478,11 +1555,12 @@ const FAQS = [
     ["How do I delete my data?", "Use \"Erase my saved data\" on My applications. To delete the account itself, use the Contact page and choose \"Delete my data.\""]]],
   ["For parents and guardians", [
     ["What does Jobly collect about my teen?", "An email address if they make an account, plus their resume, availability, tracker and practice notes if they sign in. We don't ask for a home address, birthday or ID number."],
-    ["Can employers contact my teen through Jobly?", "No. Employers can't message teens or see their information on Jobly. Teens apply on the employer's own site, so it's worth looking over any application together."],
+    ["Can employers contact my teen through Jobly?", "Only if your teen makes a profile and switches it on. Even then, employers we've verified can only send a short request, and your teen decides whether to answer. Their email is shared only if they accept. They can block, decline, switch the profile off or delete it any time. Applying to jobs still happens on the employer's own site, so it's worth looking over any application together."],
     ["Are these jobs safe?", "We review every employer listing before it goes live, but we can't guarantee any workplace. Talk with your teen about interviews, meeting at the workplace or in public, and read the safety tips together."],
     ["How do I ask for my teen's data to be deleted?", "Use the Contact page and choose \"Delete my data,\" or have your teen sign in and use \"Erase my saved data.\""]]],
   ["For employers", [
     ["How do I post a job?", "Create an account, open For employers, and fill in the form. You'll confirm that the job follows child-labor laws and that you never charge applicants."],
+    ["How do I find teens?", "Open Find talent, ask for access and tell us about your business. After we check it, you can browse teens who chose to share a profile and send a short request about a real opening. They decide whether to answer, and their email is shared only if they accept."],
     ["How long does review take?", "A person reviews each listing, usually within a few days. You can see the status under Your submissions."],
     ["How do I get a Verified badge?", "After we confirm your business is real, for example by checking your website and contacting you, we mark your listing as verified."],
     ["Can I hire someone younger than 16?", "Not through Jobly. Listings are for ages 16–18 (16+, 17+ or 18+)."]]]
@@ -1503,6 +1581,195 @@ function renderContactInfo() {
   const f = $("foot-email"); f.replaceChildren(); if (ok) f.append(el("a", { href: "mailto:" + e, text: e }));
 }
 
+/* ---------- profiles + talent search ---------- */
+const CONTACT_RE = /(https?:\/\/|www\.|[\w.+-]+@[\w-]+\.[\w.-]+|(^|[^0-9])(\(?[0-9]{3}\)?[ .-]?[0-9]{3}[ .-]?[0-9]{4}|[0-9]{3}[ .-][0-9]{4})([^0-9]|$))/i;
+const hasContact = t => CONTACT_RE.test(String(t || ""));
+const NAME_RE = /^[\p{L}][\p{L} .'-]*$/u;
+function initialsOf(name) { const w = String(name || "").trim().split(/\s+/).filter(Boolean); if (!w.length) return "?"; return ((w[0][0] || "") + (w.length > 1 ? (w[w.length - 1][0] || "") : "")).toUpperCase(); }
+function avatarIni(name, size) { const a = avatar(name, size); a.textContent = initialsOf(name); a.classList.add("ini"); return a; }
+function availTags(av) { const a = Array.isArray(av) ? av : [], t = []; if (a.some(x => /^(Mon|Tue|Wed|Thu|Fri)-[AE]$/.test(String(x)))) t.push("After school"); if (a.some(x => /^(Sat|Sun)-/.test(String(x)))) t.push("Weekends"); return t; }
+const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
+const niceDate = d => { try { return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" }); } catch (e) { return ""; } };
+const okInterests = a => (Array.isArray(a) ? a : []).filter(x => CATS.some(c => c.id === x));
+
+function profileCard(p, onView) {
+  const tags = [el("span", { class: "tag age", text: "Age " + p.age_group }), ...okInterests(p.interests).map(i => el("span", { class: "tag", text: catLabel(i) })), ...availTags(p.avail).map(t => el("span", { class: "tag good", text: t })), p.share_resume && el("span", { class: "tag check", text: "Resume shared" })];
+  return el("article", { class: "pcard" }, el("div", { class: "phead" }, avatarIni(p.display_name || "?", "lg"), el("div", {}, el("h3", { text: p.display_name || "Your name" }), el("div", { class: "sub2", text: p.area || "Area not set" }))),
+    el("div", { class: "tags" }, tags), p.bio ? el("p", { class: "bio", text: p.bio }) : el("p", { class: "bio hint", text: "No bio yet." }),
+    onView ? el("button", { class: "btn small", type: "button", onclick: onView, text: "View profile" }) : null);
+}
+function buildResume(r, name) {
+  const box = el("div", { class: "sres" }); box.append(el("h4", { text: name }));
+  if (r.summary) box.append(el("p", { text: String(r.summary).slice(0, 600) }));
+  [["Education", "edu"], ["Volunteer experience", "volunteer"], ["Clubs, sports & projects", "activities"], ["Skills", "skills"], ["Languages", "languages"], ["Certifications", "certs"]].forEach(([t, k]) => { const ls = lines(String(r[k] || "")).slice(0, 12); if (ls.length) box.append(el("h5", { text: t }), el("ul", {}, ls.map(x => el("li", { text: String(x).slice(0, 200) })))); });
+  return box;
+}
+function sharedResume() {
+  const out = {}; ["summary", "edu", "volunteer", "activities", "skills", "languages", "certs"].forEach(k => { const v = String(db.resume[k] || "").trim(); if (v) out[k] = v.slice(0, 2500); });
+  return Object.keys(out).length ? out : null;
+}
+
+/* ----- teen side ----- */
+let myProfile = null, myContact = "", myEmployer = null, talent = [], sentReqs = [];
+function onUserChanged() { myProfile = null; myContact = ""; myEmployer = null; talent = []; sentReqs = []; ["tl-list", "tl-sent", "tm-body", "pf-inbox"].forEach(id => $(id).replaceChildren()); $("tl-kw").value = ""; $("tl-cat").value = ""; $("tl-res").checked = false; $("pf-notice").classList.remove("show"); const tm = $("talent-modal"); if (tm.classList.contains("open")) closeModal(tm); fillPf(); const id = (document.querySelector(".page.active") || {}).id; if (id === "profile") loadMyProfile(); else renderPfGate(); if (id === "talent") loadEmployer(); }
+function gateMessage(box, text, withSignIn) { box.replaceChildren(text, ...(withSignIn ? [" ", el("button", { class: "btn small", type: "button", onclick: openAuth, text: "Sign in" })] : [])); box.classList.remove("hidden"); }
+function renderPfGate() {
+  const ok = !!authClient && !!currentUser, g = $("pf-gate"); $("pf-fields").disabled = !ok; g.classList.toggle("hidden", ok);
+  if (!ok) gateMessage(g, !authClient ? "Profiles aren't available yet because the site isn't connected to its database." : "Sign in or create an account to make a profile.", !!authClient);
+  $("pf-age").textContent = String(db.age);
+  renderPfPreview(); if (!ok) { $("pf-inbox").replaceChildren(el("p", { class: "hint", text: "Sign in and save your profile to get requests." })); }
+}
+function readPf() {
+  return { display_name: $("pf-name").value.trim(), area: $("pf-area").value.trim() || null, bio: $("pf-bio").value.trim() || null,
+    interests: [...$("pf-interests").querySelectorAll("input:checked")].map(i => i.value).slice(0, 6), visible: $("pf-visible").checked, share_resume: $("pf-share").checked };
+}
+function renderPfPreview() {
+  const p = readPf(); $("pf-bio-count").textContent = String($("pf-bio").value.length);
+  $("pf-vis-note").textContent = p.visible ? "This is what verified employers will see." : "Preview only. Your profile is hidden until you switch it on.";
+  $("pf-preview").replaceChildren(profileCard({ ...p, age_group: db.age, avail: db.avail }, null));
+}
+function fillPf() {
+  const p = myProfile; $("pf-name").value = p ? p.display_name : ""; $("pf-area").value = p && p.area ? p.area : ""; $("pf-bio").value = p && p.bio ? p.bio : "";
+  const cur = p ? okInterests(p.interests) : []; $("pf-interests").replaceChildren(...CATS.map(c => el("label", {}, el("input", { type: "checkbox", value: c.id, checked: cur.includes(c.id), onchange: renderPfPreview }), c.label)));
+  $("pf-visible").checked = !!(p && p.visible); $("pf-share").checked = !!(p && p.share_resume); $("pf-consent").checked = !!p;
+  $("pf-email").value = myContact || (currentUser && currentUser.email) || ""; renderPfGate();
+}
+async function loadMyProfile() {
+  renderPfGate(); if (!authClient || !currentUser) { fillPfBlank(); return; }
+  const [p, c] = await Promise.all([authClient.from("profiles").select("*").eq("user_id", currentUser.id).maybeSingle(), authClient.from("profile_contact").select("email").eq("user_id", currentUser.id).maybeSingle()]);
+  if (p.error) { note($("pf-notice"), "Couldn't load your profile. If you just updated the site, run the latest supabase/schema.sql in Supabase.", true); fillPfBlank(); return; }
+  myProfile = p.data || null; myContact = c && c.data ? c.data.email : ""; fillPf(); loadInbox();
+}
+function fillPfBlank() { if (!$("pf-interests").children.length) fillPf(); }
+async function savePf(e) {
+  e.preventDefault(); const msg = $("pf-notice"), f = readPf(), email = $("pf-email").value.trim();
+  if (!authClient || !currentUser) { note(msg, "Please sign in first.", true); return; }
+  if (f.display_name.length < 2 || !NAME_RE.test(f.display_name)) { note(msg, "Use letters only for your name, like “Jackson D.”", true); return; }
+  if (f.area && /[0-9@:\/]/.test(f.area)) { note(msg, "For your area, just type a city name.", true); return; }
+  if (f.bio && hasContact(f.bio)) { note(msg, "Please take phone numbers, emails and links out of your bio.", true); return; }
+  if (email && !goodEmail(email)) { note(msg, "That email doesn't look right.", true); return; }
+  if (!$("pf-consent").checked) { note(msg, "Please confirm the box about a parent or guardian knowing.", true); return; }
+  let resume = null;
+  if (f.share_resume) { resume = sharedResume(); if (!resume) { note(msg, "Your resume is empty. Fill it in on the Resume builder first, or turn off resume sharing.", true); return; } if (hasContact(Object.values(resume).join("\n"))) { note(msg, "Your resume has an email, phone number or link in its text. Remove it to share your resume here.", true); return; } }
+  const row = { ...f, age_group: db.age, avail: db.avail.slice(0, 40) }; let r;
+  if (myProfile) r = await authClient.from("profiles").update(row).eq("user_id", currentUser.id);
+  else r = await authClient.from("profiles").insert({ user_id: currentUser.id, ...row, consented_at: new Date().toISOString() });
+  if (r.error) { note(msg, /schema cache|relation|does not exist|column/i.test(r.error.message || "") ? "The database needs the latest update. Run supabase/schema.sql in Supabase (see SETUP-GUIDE)." : "Couldn't save your profile. Check each box and try again.", true); return; }
+  if (resume) await authClient.from("profile_resumes").upsert({ user_id: currentUser.id, resume }); else await authClient.from("profile_resumes").delete().eq("user_id", currentUser.id);
+  if (email) await authClient.from("profile_contact").upsert({ user_id: currentUser.id, email }); else await authClient.from("profile_contact").delete().eq("user_id", currentUser.id);
+  note(msg, "Saved ✓" + (f.visible ? " Verified employers can now see your profile." : " Your profile is hidden until you switch it on."), false); toast("Profile saved ✓"); loadMyProfile();
+}
+async function deletePf() {
+  if (!myProfile || !authClient || !currentUser) { toast("You don't have a saved profile yet."); return; }
+  if (!(await askConfirm("Delete your profile? Employers will no longer see it, and any requests are removed.", "Delete it"))) return;
+  const { error } = await authClient.from("profiles").delete().eq("user_id", currentUser.id);
+  if (error) { toast("Couldn't delete your profile. Please try again.", "err"); return; }
+  myProfile = null; myContact = ""; fillPf(); $("pf-inbox").replaceChildren(el("p", { class: "hint", text: "Save your profile to get requests." })); toast("Profile deleted");
+}
+async function loadInbox() {
+  const box = $("pf-inbox"); box.replaceChildren(); if (!myProfile) { box.append(el("p", { class: "hint", text: "Save your profile to get requests." })); return; }
+  const { data, error } = await authClient.from("interest_requests").select("*").eq("teen_id", currentUser.id).order("created_at", { ascending: false }).limit(50);
+  if (error) { box.append(el("p", { class: "hint", text: "Couldn't load requests." })); return; }
+  if (!data.length) { box.append(el("p", { class: "hint", text: myProfile.visible ? "No requests yet. We'll show them here." : "Switch your profile on if you want employers to find you." })); return; }
+  data.forEach(r => {
+    const st = ["pending", "accepted", "declined"].includes(r.status) ? r.status : "pending", co = String(r.company || "An employer"), site = hostOf(r.website);
+    box.append(el("div", { class: "req" }, el("div", { class: "rh" }, el("strong", { text: co + (site ? " · " + site : "") }), el("span", { class: "chip " + st, text: st[0].toUpperCase() + st.slice(1) })),
+      el("p", { text: String(r.message) }), el("span", { class: "hint", text: niceDate(r.created_at) }),
+      st === "pending" ? el("div", { class: "rowbtns" }, el("button", { class: "btn small", type: "button", onclick: () => answerReq(r, "accepted"), text: "Accept and share my email" }), el("button", { class: "btn light small", type: "button", onclick: () => answerReq(r, "declined"), text: "Decline" }), el("button", { class: "btn light small danger", type: "button", onclick: () => blockEmployer(r), text: "Block" })) : (st === "accepted" ? el("div", { class: "rowbtns" }, el("button", { class: "btn light small danger", type: "button", onclick: () => blockEmployer(r), text: "Block" })) : null)));
+  });
+}
+async function answerReq(r, status) {
+  if (status === "accepted") { if (!myContact) { toast("Add an email above and press Save first. That's what the employer will receive.", "err", 5000); return; } if (!(await askConfirm("Accepting shares your email (" + myContact + ") with " + (r.company || "this employer") + ". Continue?", "Accept"))) return; }
+  const { error } = await authClient.from("interest_requests").update({ status }).eq("id", r.id);
+  if (error) { toast("Couldn't update that request.", "err"); return; } toast(status === "accepted" ? "Accepted. They can now see your email." : "Declined"); loadInbox();
+}
+async function blockEmployer(r) {
+  if (!(await askConfirm("Block " + (r.company || "this employer") + "? They won't be able to see your profile or contact you.", "Block"))) return;
+  const b = await authClient.from("blocks").insert({ employer_id: r.employer_id });
+  if (b.error && !/duplicate/i.test(b.error.message || "")) { toast("Couldn't block them. Please try again.", "err"); return; }
+  if (r.status === "pending") await authClient.from("interest_requests").update({ status: "declined" }).eq("id", r.id);
+  toast("Blocked"); loadInbox();
+}
+
+/* ----- employer side ----- */
+function renderTalentState() {
+  const gate = $("tl-gate"), apply = $("tl-apply"), browse = $("tl-browse"); [apply, browse].forEach(x => x.classList.add("hidden")); gate.classList.add("hidden");
+  if (!authClient) { gateMessage(gate, "Talent search isn't available yet because the site isn't connected to its database."); return; }
+  if (!currentUser) { gateMessage(gate, "Sign in with your work email to ask for access.", true); return; }
+  if (!myEmployer) { apply.classList.remove("hidden"); return; }
+  if (myEmployer.status === "pending") { gateMessage(gate, "Thanks! We're checking " + myEmployer.company + ". You'll be able to browse as soon as you're approved. This usually takes a few days. Refresh this page to check."); return; }
+  if (myEmployer.status === "rejected") { gateMessage(gate, "We couldn't approve this account. If you think that's a mistake, use the Contact page."); return; }
+  browse.classList.remove("hidden");
+}
+async function loadEmployer() {
+  renderTalentState(); if (!authClient || !currentUser) return;
+  const { data, error } = await authClient.from("employers").select("*").eq("user_id", currentUser.id).maybeSingle();
+  if (error) { gateMessage($("tl-gate"), "Couldn't check your access. If you just updated the site, run the latest supabase/schema.sql in Supabase."); return; }
+  myEmployer = data || null; renderTalentState(); if (myEmployer && myEmployer.status === "verified") loadTalent();
+}
+async function applyEmployer(e) {
+  e.preventDefault(); const msg = $("tl-apply-notice"), site = $("tl-site").value.trim();
+  if (!authClient || !currentUser) { note(msg, "Please sign in first.", true); return; }
+  if (site && !/^https:\/\//i.test(site)) { note(msg, "Your website must start with https://", true); return; }
+  if (!$("tl-agree").checked) { note(msg, "Please confirm the box about how you'll contact teens.", true); return; }
+  const { error } = await authClient.from("employers").insert({ user_id: currentUser.id, company: $("tl-company").value.trim(), website: site || null, note: $("tl-note").value.trim() || null });
+  if (error) { note(msg, /duplicate/i.test(error.message || "") ? "You've already asked for access." : "Couldn't send your request. Check the fields and try again.", true); return; }
+  toast("Access requested ✓"); loadEmployer();
+}
+async function loadTalent() {
+  const [p, r] = await Promise.all([authClient.from("profiles").select("*").order("updated_at", { ascending: false }).limit(100), authClient.from("interest_requests").select("*").eq("employer_id", currentUser.id).order("created_at", { ascending: false }).limit(100)]);
+  talent = p.error ? [] : p.data; sentReqs = r.error ? [] : r.data; renderTalent(); renderSent();
+  if (p.error) $("tl-count").textContent = "Couldn't load profiles.";
+}
+function renderTalent() {
+  const kw = $("tl-kw").value.trim().toLowerCase(), cat = $("tl-cat").value, res = $("tl-res").checked, box = $("tl-list"); box.replaceChildren();
+  const list = talent.filter(p => (!cat || okInterests(p.interests).includes(cat)) && (!res || p.share_resume) && (!kw || ((p.display_name || "") + " " + (p.area || "") + " " + (p.bio || "")).toLowerCase().includes(kw)));
+  $("tl-count").textContent = list.length + " profile" + (list.length === 1 ? "" : "s") + (talent.length ? "" : " (none shared yet)");
+  if (!list.length) { box.append(emptyState(talent.length ? "No one matches those filters" : "No teens have shared a profile yet", talent.length ? "Try clearing a filter." : "Check back soon. Profiles appear here as teens switch theirs on.")); return; }
+  list.forEach(p => box.append(profileCard(p, () => openTalent(p))));
+}
+function renderSent() {
+  const box = $("tl-sent"); box.replaceChildren(); if (!sentReqs.length) { box.append(el("p", { class: "hint", text: "No requests yet." })); return; }
+  sentReqs.forEach(r => {
+    const p = talent.find(x => x.user_id === r.teen_id), st = ["pending", "accepted", "declined"].includes(r.status) ? r.status : "pending", out = el("div", { class: "hint" });
+    box.append(el("div", { class: "req" }, el("div", { class: "rh" }, el("strong", { text: p ? p.display_name : "Profile no longer available" }), el("span", { class: "chip " + st, text: st[0].toUpperCase() + st.slice(1) })), el("p", { text: String(r.message) }), out,
+      el("div", { class: "rowbtns" }, st === "accepted" ? el("button", { class: "btn small", type: "button", onclick: async () => { const c = await authClient.from("profile_contact").select("email").eq("user_id", r.teen_id).maybeSingle(); out.replaceChildren(c.data && c.data.email ? el("span", {}, "Contact: ", el("a", { href: "mailto:" + c.data.email, text: c.data.email, style: "text-decoration:underline" })) : "They haven't shared an email."); }, text: "Show contact" }) : null,
+        st === "pending" ? el("button", { class: "btn light small", type: "button", onclick: async () => { await authClient.from("interest_requests").delete().eq("id", r.id); toast("Request withdrawn"); loadTalent(); }, text: "Withdraw" }) : null)));
+  });
+}
+async function openTalent(p) {
+  $("tm-avatar").replaceChildren(avatarIni(p.display_name, "lg")); $("tm-title").textContent = p.display_name; $("tm-sub").textContent = "Age " + p.age_group + (p.area ? " · " + p.area : "");
+  const body = $("tm-body"); body.replaceChildren();
+  body.append(el("div", { class: "tags" }, okInterests(p.interests).map(i => el("span", { class: "tag", text: catLabel(i) })), availTags(p.avail).map(t => el("span", { class: "tag good", text: t }))), p.bio ? el("p", { text: p.bio, style: "margin:12px 0" }) : null);
+  const resBox = el("div", {}); body.append(resBox);
+  if (p.share_resume) { resBox.append(el("p", { class: "hint", text: "Loading resume…" })); authClient.from("profile_resumes").select("resume").eq("user_id", p.user_id).maybeSingle().then(({ data }) => { resBox.replaceChildren(data && data.resume ? el("div", {}, el("strong", { text: "Resume (shared by " + p.display_name + ")" }), buildResume(data.resume, p.display_name)) : el("p", { class: "hint", text: "No resume available." })); }); }
+  const existing = sentReqs.find(r => r.teen_id === p.user_id), reqBox = el("div", { style: "margin-top:14px" }); body.append(reqBox);
+  if (existing) reqBox.append(el("div", { class: "banner info" }, "You sent a request on " + niceDate(existing.created_at) + ". Status: " + existing.status + "."));
+  else {
+    const ta = el("textarea", { maxlength: "300", placeholder: "e.g. We're hiring weekend baristas at Daily Grind and think you'd be a great fit. Want to hear more?" }), n = el("div", { class: "notice", role: "status" });
+    const send = el("button", { class: "btn", type: "button", text: "Send hire interest" });
+    send.addEventListener("click", async () => {
+      const t = ta.value.trim(); if (t.length < 10) { note(n, "Write at least 10 characters about the opening.", true); return; } if (hasContact(t)) { note(n, "Don't include phone numbers, emails or links. If they accept, they can share contact details.", true); return; }
+      send.disabled = true; const { error } = await authClient.from("interest_requests").insert({ teen_id: p.user_id, message: t }); send.disabled = false;
+      if (error) { note(n, /duplicate/i.test(error.message || "") ? "You've already sent this teen a request." : "Couldn't send. You may have hit today's limit of 20, or this profile was just switched off.", true); return; }
+      toast("Request sent ✓"); closeModal($("talent-modal")); loadTalent();
+    });
+    reqBox.append(el("label", { class: "form" }, el("strong", { text: "Send a short note about a real opening" }), ta), el("p", { class: "hint", text: "They'll see your company name and website. Their email is shared only if they accept." }), el("div", { class: "rowbtns", style: "margin-top:8px" }, send), n);
+  }
+  const rs = el("select", {}, ["Looks fake or inappropriate", "Shares contact details", "Seems under 16", "Other"].map(x => el("option", { value: x, text: x }))), rd = el("textarea", { maxlength: "500", placeholder: "Optional details" }), rn = el("div", { class: "notice", role: "status" });
+  const rb = el("button", { class: "btn light small", type: "button", text: "Send report" });
+  rb.addEventListener("click", async () => { const { error } = await authClient.from("profile_reports").insert({ profile_id: p.user_id, reason: rs.value, details: rd.value.trim().slice(0, 500) || null }); note(rn, error ? "Couldn't send the report. Please try again." : "Thanks. We'll review this profile.", !!error); });
+  body.append(el("details", { style: "margin-top:16px" }, el("summary", { text: "Report this profile" }), el("div", { class: "form", style: "margin-top:8px" }, rs, rd, el("div", {}, rb), rn)));
+  openModal($("talent-modal"));
+}
+function initProfiles() {
+  $("tl-cat").append(...CATS.map(c => el("option", { value: c.id, text: c.label })));
+  $("pf-form").addEventListener("submit", savePf); $("pf-delete").addEventListener("click", deletePf);
+  ["pf-name", "pf-area", "pf-bio"].forEach(id => $(id).addEventListener("input", renderPfPreview)); ["pf-visible", "pf-share"].forEach(id => $(id).addEventListener("change", renderPfPreview));
+  $("tl-apply-form").addEventListener("submit", applyEmployer); ["tl-kw"].forEach(id => $(id).addEventListener("input", renderTalent)); ["tl-cat", "tl-res"].forEach(id => $(id).addEventListener("change", renderTalent));
+  fillPf();
+}
+
 /* ---------- page router ---------- */
 const PAGES = [...document.querySelectorAll(".page")];
 function parseHash(h) {
@@ -1515,6 +1782,7 @@ function showPage(hash) {
   const page = target ? (target.classList.contains("page") ? target : target.closest(".page")) : null, active = page || $("home");
   PAGES.forEach(x => x.classList.toggle("active", x === active));
   markNav(active.id); closeDropdowns(); stopTimer();
+  if (active.id === "profile") loadMyProfile(); if (active.id === "talent") loadEmployer();
   document.title = active.id === "home" ? "Jobly — Your first job starts here" : "Jobly — " + (active.querySelector("h2, h1") || { textContent: "" }).textContent.slice(0, 40);
   if (p.job) { pendingJob = p.job; tryOpenPending(); }
   if (target && target !== active && !p.job) target.scrollIntoView(); else window.scrollTo(0, 0);
@@ -1564,7 +1832,7 @@ $("q-next").addEventListener("click", () => { if (qStep < QN - 1) { qStep++; ren
 $("iv-timer-btn").addEventListener("click", startTimer);
 $("iv-random").addEventListener("click", () => { const others = QUESTIONS.filter(q => q.id !== ivId); ivId = others[Math.floor(Math.random() * others.length)].id; renderInterview(); $("iv-q").focus(); });
 $("iv-answer").addEventListener("input", e => { const v = e.target.value.slice(0, 600); if (v.trim()) db.practice[ivId] = v; else delete db.practice[ivId]; persist(); renderIvList(); renderChecklist(); });
-renderNav(); renderMenu(); updateThemeBtn(); renderFaq(); renderAbout(); renderContactInfo(); quizReset(); renderQuiz(false); renderInterview();
+initProfiles(); renderNav(); renderMenu(); updateThemeBtn(); renderFaq(); renderAbout(); renderContactInfo(); quizReset(); renderQuiz(false); renderInterview();
 loadResumeForm(); renderAvail(); renderResume(); renderSearches(); syncQuick(); renderAll(); renderEmpGate(); showPage(); loadJobs();
 </script>
 </body>
