@@ -1,0 +1,61 @@
+JOBLY ADMIN GUIDE (you are the moderator)
+=========================================
+
+You manage everything from the Supabase dashboard -> Table Editor. No extra admin page is needed.
+Log in at supabase.com/dashboard, open your project, click "Table Editor".
+
+REVIEWING A NEW JOB (do this for EVERY submission)
+  1. Table Editor -> jobs -> filter status = pending.
+  2. Open the row. Open job_private for the same job_id to see the employer's contact email.
+  3. CHECK, in this order:
+     [ ] The business is real: search its name + city, find its website / Google listing / social page.
+     [ ] The email domain matches the business (not a free gmail/outlook for a "big" company).
+     [ ] The apply link goes to the employer's own site (https only).
+     [ ] Pay is at least the local minimum wage and clearly stated. No "up to $5,000/week".
+     [ ] No fees, gift cards, equipment purchases, or "send us your SSN/bank info".
+     [ ] The minimum age fits the work. Common sense for under-18s: no alcohol service (rules vary),
+         no heavy machinery, no roofing, no driving as the main job, no late-night shifts on school nights.
+         Rules differ by state. Check your state labor agency and the U.S. Dept. of Labor (dol.gov).
+     [ ] The description reads like a real person wrote it.
+  4. If it passes: set status = approved. If you are confident the employer is real (you confirmed
+     who they are, e.g. by calling or emailing the business), also tick employer_verified = true.
+     This shows the blue "Employer verified" badge. Jobs without it show "Not yet verified".
+  5. If it fails: set status = rejected (the employer sees "Not approved" under Your submissions).
+     Consider emailing them why.
+  Approved jobs appear on the site right away (refresh).
+
+ADDING A JOB YOURSELF
+  Table Editor -> jobs -> Insert row. Required: title, company, city, job_type, work_style, min_pay,
+  max_pay, hrs_min, hrs_max, min_age (16/17/18), description. Set status = approved.
+  Optional: zip, lat/lon (needed for the distance filter on real jobs), shifts, tasks, apply_url, season.
+  shifts format: an array of codes like {Mon-A,Wed-A,Sat-M}  (A = afternoon/after school, M = morning, E = evening)
+  tasks format: {Greet customers,Prepare drinks}
+  season: summer or holiday (leave empty for year-round). Tick is_flexible if there are no fixed shifts.
+
+REMOVING A JOB
+  Set status = rejected (hides it, keeps a record) or delete the row.
+  Jobs that are filled or expired should be hidden promptly.
+
+REPORTS (check at least every few days)
+  Table Editor -> reports. job_ref = the job's id (look it up in jobs). Reasons "Asks for money or
+  fees" and "Looks like a scam" are URGENT: set that job to rejected immediately, then investigate.
+  Delete report rows once handled.
+
+CONTACT MESSAGES
+  Table Editor -> contact_messages. Reply to the email in the row. Topic "Delete my data":
+  1) Authentication -> Users -> find the person by email -> delete the user. Their saved data
+     (user_data) deletes automatically. 2) Reply to confirm.
+  For parent/guardian questions, reply promptly and politely and offer deletion if they want it.
+
+GOOD HOUSEKEEPING
+  * Keep a simple log (a spreadsheet) of who you verified and how.
+  * Never share the project's secret/service_role key or database password with anyone.
+  * Enable two-factor sign-in on your Supabase and GitHub accounts.
+  * Supabase free projects pause after a week of inactivity: log in occasionally, or upgrade
+    before launching widely.
+  * Back up your jobs table now and then (Table Editor -> export as CSV).
+
+LOCATION / DISTANCE
+  The distance filter knows a few sample ZIP codes (see ZIPS in index.html). For other areas, add
+  their ZIP centers to the ZIPS list in index.html (lat/lon of each ZIP; search "zip code lat lon"),
+  and fill lat/lon on the job rows. Teens' ZIPs are never stored or sent anywhere.

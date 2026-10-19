@@ -1,0 +1,48 @@
+JOBLY GROWTH GUIDE: things that need accounts or decisions on your side
+=======================================================================
+
+1. REAL EMAIL FOR SIGN-UP / PASSWORD RESET  (do this before inviting people)
+   Supabase's built-in email sender is limited to a few emails per hour. Set up your own:
+   - Make a free account at Resend (resend.com) or Brevo (brevo.com).
+   - Verify a sending domain/address (best: a custom domain, see #2).
+   - Copy their SMTP host, port, username, password.
+   - Supabase -> Authentication -> SMTP Settings -> Enable custom SMTP -> paste them -> Save.
+   - Test: create an account with a fresh email and confirm the message arrives (and not in spam).
+
+2. CUSTOM DOMAIN  (e.g. jobly.com)
+   - Check the name isn't already used by a business or trademarked (search uspto.gov, Google).
+   - Buy it (Namecheap, Cloudflare, Porkbun ~$10-15/yr).
+   - GitHub repo -> Settings -> Pages -> Custom domain -> enter it -> Save. Follow GitHub's DNS
+     instructions at your registrar (A records / a CNAME). Tick "Enforce HTTPS" when it appears.
+   - Update Supabase -> Authentication -> URL Configuration (Site URL + Redirect URLs) to the new domain.
+   - Update your SMTP "from" address to match.
+
+3. ANALYTICS (optional, privacy-friendly)
+   Use a tool that doesn't track individuals, e.g. GoatCounter (free) or Plausible. Add its one-line
+   script to index.html and add its domain to script-src and connect-src in the Content-Security-Policy
+   meta tag at the top of index.html. Mention analytics in the privacy text. Don't use ad trackers on a
+   site for minors.
+
+4. JOB ALERTS AND FOLLOW-UP REMINDER EMAILS  (not built yet)
+   Today: saved searches are stored and reminders show inside the site (banner on My applications).
+   To email people you need a server-side job: a Supabase Edge Function on a schedule that checks new
+   approved jobs against saved searches (user_data.searches) and sends via Resend. Ask me to build it
+   when you're ready. Because the audience is minors, make alerts opt-in only and include unsubscribe.
+
+5. LEGAL REVIEW (before promoting widely)
+   Have a lawyer review the Privacy & terms text. Things to ask about: COPPA / state privacy laws for
+   minors, data retention, parental requests, employer terms, and your liability for listings.
+
+6. FINDING REAL EMPLOYERS
+   - Start local: cafes, grocery stores, theaters, rec centers, libraries, camps, city parks departments.
+   - Call or visit and ask who hires 16-17-year-olds. Offer to list them free.
+   - Partner with school counselors / career centers: they can recommend you to families.
+   - Give each employer the same promise: "We review every listing; we never charge applicants."
+
+7. PEOPLE AND PROCESS
+   Decide who reviews jobs, how fast (e.g. within 3 days), and who answers reports. Even a tiny site
+   needs a named person. Put a contact email for urgent reports on the Contact page when you have one.
+
+8. COSTS (rough)
+   GitHub Pages: free. Supabase free tier: fine to start. Domain: ~$12/yr. Email service: free tier.
+   Upgrade Supabase (~$25/mo) before real launch if you need the project to never pause.

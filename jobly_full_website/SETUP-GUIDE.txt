@@ -1,0 +1,72 @@
+JOBLY SETUP GUIDE (version 3)
+=============================
+
+WHAT'S IN THIS FOLDER
+  index.html              the whole website
+  config.js               YOUR two public Supabase values go here (this is the only file you edit)
+  supabase/schema.sql     the database tables and security rules (run once in Supabase)
+  manifest.webmanifest    lets people "Add to Home Screen"
+  icon.svg                the app icon
+  SETUP-GUIDE.txt         this file
+  ADMIN-GUIDE.txt         how YOU approve jobs, read reports, and run the site day to day
+  GROWTH-GUIDE.txt        email service, custom domain, analytics, legal checklist
+
+PART 1: UPDATE YOUR GITHUB SITE (VS Code)
+  1. Open your Jobly folder in VS Code.
+  2. Copy ALL files from this zip into the top level of that folder (replace index.html when asked).
+     The "supabase" folder goes in too.
+  3. Open config.js and paste your two values (copy them from the OLD index.html lines that said
+     SUPABASE_URL and SUPABASE_ANON_KEY). Keep the quotes:
+         supabaseUrl: "https://xxxx.supabase.co",
+         supabaseKey: "sb_publishable_xxxx"
+     Use the PUBLISHABLE (anon) key only. Never a secret / service_role key.
+  4. Source Control -> type a message -> Commit -> Sync Changes.
+  Because your keys now live in config.js, future updates to index.html will not erase them.
+
+PART 2: CREATE THE DATABASE (once, ~3 minutes)
+  1. Supabase dashboard -> SQL Editor -> New query.
+  2. Open supabase/schema.sql in VS Code, copy EVERYTHING, paste it into the query box, click Run.
+     You should see "Success. No rows returned". It is safe to run again later.
+  3. Check Table Editor: you should now see jobs, job_private, user_data, reports, contact_messages.
+  Every table has Row Level Security turned on. The site can only do what the rules allow
+  (see "Security model" below).
+
+PART 3: SUPABASE AUTH SETTINGS (if you haven't already)
+  - Authentication -> URL Configuration: Site URL and Redirect URLs = your live site address.
+  - Authentication -> Providers -> Email: enabled, "Confirm email" ON.
+  - Authentication -> Sign In / Providers -> password minimum length 10.
+  - Authentication -> SMTP Settings: set up a real email service (see GROWTH-GUIDE.txt). The built-in
+    sender allows only a few emails per hour.
+
+PART 4: TEST EVERYTHING (use a private/incognito window)
+  [ ] Site loads, "Setup needed" warning gone, sample banner shows (no real jobs yet).
+  [ ] Create an account, verify the email, sign in.
+  [ ] Resume builder: type a name, wait 2 seconds. In Table Editor -> user_data you see your row.
+  [ ] Sign in on another device/browser: your resume and tracker appear.
+  [ ] For employers: submit a test job. In Table Editor -> jobs it appears with status = pending.
+      Change status to approved -> refresh the site -> real jobs replace the samples.
+  [ ] Open a job -> "Report this listing" -> check Table Editor -> reports.
+  [ ] Contact page -> send a message -> check Table Editor -> contact_messages.
+
+HOW THE SITE BEHAVES
+  * Not connected / database empty: shows sample listings with a clear "sample" banner.
+  * Once at least one job is approved: ONLY real approved jobs are shown (samples disappear).
+  * Without an account: resume/tracker/searches stay on that device only.
+  * With an account: they also save to the user's private row in user_data, and sync across devices.
+  * Signing out clears that device's copy (it stays safe in the account).
+
+SECURITY MODEL (what the rules enforce)
+  * Anyone can read jobs with status = approved. Nothing else is publicly readable.
+  * Signed-in users can submit jobs only as pending + not verified, only as themselves, max 10 waiting.
+  * Employer contact emails (job_private) are visible only to that employer and to you.
+  * user_data is readable/writable only by its owner.
+  * reports and contact_messages can be written by anyone but are never readable through the site.
+  * Database checks reject: ages below 16, apply links that aren't https, pay ranges that don't make sense.
+  * Only the public (anon/publishable) key is in the website. Never put a secret key in config.js.
+
+IF SOMETHING GOES WRONG
+  * Jobs don't show / "sample" banner stays: check config.js values, and that at least one job row has
+    status = approved. Browser F12 -> Console shows errors.
+  * "Couldn't submit" when posting a job: make sure schema.sql ran fully (Part 2), you're signed in,
+    the apply link starts with https://, and you have fewer than 10 jobs waiting.
+  * Verification / reset emails don't arrive: check spam, Redirect URLs, and SMTP (rate limits).

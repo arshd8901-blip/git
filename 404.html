@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Page not found · Jobly</title><meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:">
+<link rel="icon" href="/icon.svg" type="image/svg+xml" id="fav">
+<style>
+:root{--paper:#fffdf8;--ink:#152018;--muted:#4a5a50;--brand:#2a7a4b;--accent:#ff6b3d}
+@media(prefers-color-scheme:dark){:root{--paper:#121a15;--ink:#f2f5ef;--muted:#b4c2b8;--brand:#5fc287}}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:24px;text-align:center}
+main{max-width:520px}.big{font-size:clamp(72px,22vw,140px);font-weight:800;letter-spacing:-6px;line-height:1;margin:0}.big span{color:var(--accent)}
+h1{font-size:28px;margin:12px 0 8px}p{color:var(--muted);line-height:1.5;font-size:18px;margin:0 0 24px}
+a.btn{display:inline-block;background:var(--accent);color:#1a0d07;font-weight:700;text-decoration:none;padding:14px 26px;border-radius:99px;font-size:17px}
+a.btn:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+</style></head><body><main>
+<p class="big" aria-hidden="true">4<span>0</span>4</p>
+<h1>That page wandered off.</h1>
+<p>The link might be old or mistyped. Let's get you back to finding a job.</p>
+<a class="btn" id="home" href="./">Back to Jobly</a>
+</main>
+<script>
+/* The 404 page is served from any path, so work out the site's home folder: a project site lives at /<repo>/, a custom domain at /. */
+(function(){var seg=location.pathname.split("/").filter(Boolean),host=location.hostname,base="/";
+if(/\.github\.io$/.test(host)&&seg.length)base="/"+seg[0]+"/";
+var h=document.getElementById("home");h.href=base;document.getElementById("fav").href=base+"icon.svg";})();
+</script></body></html>

@@ -1,0 +1,95 @@
+JOBLY SETUP GUIDE (version 4)
+=============================
+
+WHAT'S IN THIS FOLDER
+  index.html              the whole website
+  config.js               YOUR two public Supabase values go here (this is the only file you edit)
+  supabase/schema.sql     the database tables and security rules (run once in Supabase)
+  config.example.js       the optional settings you can add to config.js (contact email, About text)
+  404.html                the "page not found" page (GitHub Pages uses it automatically)
+  manifest.webmanifest    lets people "Add to Home Screen"
+  icon.svg, icon-*.png, apple-touch-icon.png   the app icons
+  og-image.png            the picture shown when your link is shared in a text or chat
+  SETUP-GUIDE.txt         this file
+  ADMIN-GUIDE.txt         how YOU approve jobs, read reports, and run the site day to day
+  GROWTH-GUIDE.txt        email service, custom domain, analytics, legal checklist
+
+UPDATING FROM v3 (already live? do these 3 things)
+  1. Copy every file from this zip into your Jobly folder EXCEPT config.js. Keep your own config.js,
+     it already has your Supabase values. (This zip does not even include config.js.)
+  2. Supabase -> SQL Editor -> New query -> paste ALL of supabase/schema.sql -> Run.
+     This adds two small columns for the checklist and practice notes. It is safe to run again and
+     does not touch your existing jobs or users. (If you skip it, the site still works; only
+     checklist/practice sync to the account is held back and stays on the device.)
+  3. Source Control -> message -> Commit -> Sync Changes. Wait a minute, then hard-refresh the site.
+  Optional: add these to your config.js (see config.example.js), inside the braces, with commas:
+         contactEmail: "you@example.com",
+         aboutName: "Your name",
+         aboutStory: ["One short paragraph about why you built Jobly."],
+  Share preview: if your site address ever changes (custom domain), open index.html and replace
+  https://arshd8901-blip.github.io/jobly_full_website/ in the og:url and og:image lines (near the top).
+
+PART 1: UPDATE YOUR GITHUB SITE (VS Code)
+  1. Open your Jobly folder in VS Code.
+  2. Copy ALL files from this zip into the top level of that folder (replace index.html when asked).
+     The "supabase" folder goes in too.
+  3. Open config.js and paste your two values (copy them from the OLD index.html lines that said
+     SUPABASE_URL and SUPABASE_ANON_KEY). Keep the quotes:
+         supabaseUrl: "https://xxxx.supabase.co",
+         supabaseKey: "sb_publishable_xxxx"
+     Use the PUBLISHABLE (anon) key only. Never a secret / service_role key.
+  4. Source Control -> type a message -> Commit -> Sync Changes.
+  Because your keys now live in config.js, future updates to index.html will not erase them.
+
+PART 2: CREATE THE DATABASE (once, ~3 minutes)
+  1. Supabase dashboard -> SQL Editor -> New query.
+  2. Open supabase/schema.sql in VS Code, copy EVERYTHING, paste it into the query box, click Run.
+     You should see "Success. No rows returned". It is safe to run again later.
+  3. Check Table Editor: you should now see jobs, job_private, user_data, reports, contact_messages.
+     user_data should also have checklist and practice columns.
+  Every table has Row Level Security turned on. The site can only do what the rules allow
+  (see "Security model" below).
+
+PART 3: SUPABASE AUTH SETTINGS (if you haven't already)
+  - Authentication -> URL Configuration: Site URL and Redirect URLs = your live site address.
+  - Authentication -> Providers -> Email: enabled, "Confirm email" ON.
+  - Authentication -> Sign In / Providers -> password minimum length 10.
+  - Authentication -> SMTP Settings: set up a real email service (see GROWTH-GUIDE.txt). The built-in
+    sender allows only a few emails per hour.
+
+PART 4: TEST EVERYTHING (use a private/incognito window)
+  [ ] Site loads, "Setup needed" warning gone, sample banner shows (no real jobs yet).
+  [ ] Create an account, verify the email, sign in.
+  [ ] Resume builder: type a name, wait 2 seconds. In Table Editor -> user_data you see your row.
+  [ ] Sign in on another device/browser: your resume and tracker appear.
+  [ ] For employers: submit a test job. In Table Editor -> jobs it appears with status = pending.
+      Change status to approved -> refresh the site -> real jobs replace the samples.
+  [ ] Open a job -> "Report this listing" -> check Table Editor -> reports.
+  [ ] Contact page -> send a message -> check Table Editor -> contact_messages.
+  [ ] Find my match: finish the quiz and see ranked jobs. Tick a checklist step, sign in elsewhere, and see it there.
+  [ ] Open a job, press Share, paste the link in a new tab: the same job opens.
+  [ ] Toggle dark mode (moon button). On a phone, check the bottom tab bar.
+  [ ] Visit a made-up address like /nope to see the friendly 404 page.
+
+HOW THE SITE BEHAVES
+  * Not connected / database empty: shows sample listings with a clear "sample" banner.
+  * Once at least one job is approved: ONLY real approved jobs are shown (samples disappear).
+  * Without an account: resume/tracker/searches stay on that device only.
+  * With an account: they also save to the user's private row in user_data, and sync across devices.
+  * Signing out clears that device's copy (it stays safe in the account).
+
+SECURITY MODEL (what the rules enforce)
+  * Anyone can read jobs with status = approved. Nothing else is publicly readable.
+  * Signed-in users can submit jobs only as pending + not verified, only as themselves, max 10 waiting.
+  * Employer contact emails (job_private) are visible only to that employer and to you.
+  * user_data is readable/writable only by its owner.
+  * reports and contact_messages can be written by anyone but are never readable through the site.
+  * Database checks reject: ages below 16, apply links that aren't https, pay ranges that don't make sense.
+  * Only the public (anon/publishable) key is in the website. Never put a secret key in config.js.
+
+IF SOMETHING GOES WRONG
+  * Jobs don't show / "sample" banner stays: check config.js values, and that at least one job row has
+    status = approved. Browser F12 -> Console shows errors.
+  * "Couldn't submit" when posting a job: make sure schema.sql ran fully (Part 2), you're signed in,
+    the apply link starts with https://, and you have fewer than 10 jobs waiting.
+  * Verification / reset emails don't arrive: check spam, Redirect URLs, and SMTP (rate limits).
