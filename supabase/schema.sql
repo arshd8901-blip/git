@@ -334,6 +334,169 @@ grant select, insert, delete on public.blocks to authenticated;
 grant insert on public.profile_reports to authenticated;
 
 -- =====================================================================
+-- v6: ADMIN PAGE + EMAIL OUTBOX (safe to run again)
+--  * You become an admin by adding your user id to the admins table (see ADMIN-GUIDE.txt).
+--  * Admins can read review queues and act through a few checked functions. Nothing else changes.
+--  * Important events are queued in "outbox". The send-emails function (optional) turns them into emails.
+-- =====================================================================
+create table if not exists public.admins (user_id uuid primary key references auth.users(id) on delete cascade);
+alter table public.admins enable row level security;
+drop policy if exists "admins read self" on public.admins;
+create policy "admins read self" on public.admins for select to authenticated using (user_id = auth.uid());
+revoke all on public.admins from anon, authenticated;
+grant select on public.admins to authenticated;
+
+create or replace function public.is_admin() returns boolean
+language sql security definer stable set search_path = public as $$
+  select exists (select 1 from public.admins where user_id = auth.uid())
+$$;
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to authenticated;
+
+-- "handled" flags so you can tick items off
+alter table public.reports add column if not exists handled boolean not null default false;
+alter table public.contact_messages add column if not exists handled boolean not null default false;
+alter table public.profile_reports add column if not exists handled boolean not null default false;
+-- The public can no longer choose "handled" when sending a report or message
+revoke insert on public.reports, public.contact_messages from anon, authenticated;
+grant insert (job_ref, is_sample, reason, details) on public.reports to anon, authenticated;
+grant insert (name, email, topic, message) on public.contact_messages to anon, authenticated;
+revoke insert on public.profile_reports from authenticated;
+grant insert (profile_id, reason, details) on public.profile_reports to authenticated;
+
+-- Teens can switch off email alerts
+alter table public.profiles add column if not exists notify_email boolean not null default true;
+grant insert (notify_email) on public.profiles to authenticated;
+grant update (notify_email) on public.profiles to authenticated;
+
+-- ---------- what admins may READ ----------
+drop policy if exists "admin reads jobs" on public.jobs;
+create policy "admin reads jobs" on public.jobs for select to authenticated using (public.is_admin());
+drop policy if exists "admin reads job contacts" on public.job_private;
+create policy "admin reads job contacts" on public.job_private for select to authenticated using (public.is_admin());
+drop policy if exists "admin reads employers" on public.employers;
+create policy "admin reads employers" on public.employers for select to authenticated using (public.is_admin());
+drop policy if exists "admin reads profiles" on public.profiles;
+create policy "admin reads profiles" on public.profiles for select to authenticated using (public.is_admin());
+drop policy if exists "admin reads reports" on public.reports;
+create policy "admin reads reports" on public.reports for select to authenticated using (public.is_admin());
+drop policy if exists "admin reads messages" on public.contact_messages;
+create policy "admin reads messages" on public.contact_messages for select to authenticated using (public.is_admin());
+drop policy if exists "admin reads profile reports" on public.profile_reports;
+create policy "admin reads profile reports" on public.profile_reports for select to authenticated using (public.is_admin());
+grant select on public.reports, public.contact_messages, public.profile_reports to authenticated;
+
+-- ---------- what admins may DO (each function checks is_admin() itself) ----------
+create or replace function public.admin_review_job(p_id uuid, p_status text, p_verified boolean default false) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'not allowed'; end if;
+  if p_status not in ('approved','rejected','pending') then raise exception 'bad status'; end if;
+  update public.jobs set status = p_status, employer_verified = (p_status = 'approved' and coalesce(p_verified,false)) where id = p_id;
+end $$;
+create or replace function public.admin_review_employer(p_user uuid, p_status text) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'not allowed'; end if;
+  if p_status not in ('verified','rejected','pending') then raise exception 'bad status'; end if;
+  update public.employers set status = p_status where user_id = p_user;
+end $$;
+create or replace function public.admin_set_profile_hidden(p_user uuid, p_hidden boolean) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'not allowed'; end if;
+  update public.profiles set hidden_by_admin = coalesce(p_hidden,false) where user_id = p_user;
+end $$;
+create or replace function public.admin_mark_handled(p_kind text, p_id uuid, p_handled boolean default true) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'not allowed'; end if;
+  if p_kind = 'report' then update public.reports set handled = p_handled where id = p_id;
+  elsif p_kind = 'message' then update public.contact_messages set handled = p_handled where id = p_id;
+  elsif p_kind = 'profile_report' then update public.profile_reports set handled = p_handled where id = p_id;
+  else raise exception 'bad kind'; end if;
+end $$;
+revoke all on function public.admin_review_job(uuid,text,boolean), public.admin_review_employer(uuid,text),
+  public.admin_set_profile_hidden(uuid,boolean), public.admin_mark_handled(text,uuid,boolean) from public;
+grant execute on function public.admin_review_job(uuid,text,boolean), public.admin_review_employer(uuid,text),
+  public.admin_set_profile_hidden(uuid,boolean), public.admin_mark_handled(text,uuid,boolean) to authenticated;
+
+-- ---------- EMAIL OUTBOX (only the server-side send-emails function can read it) ----------
+create table if not exists public.outbox (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null check (char_length(kind) <= 40),
+  user_id uuid references auth.users(id) on delete cascade,
+  to_admin boolean not null default false,
+  data jsonb not null default '{}'::jsonb check (octet_length(data::text) < 2000),
+  created_at timestamptz not null default now(),
+  sent_at timestamptz,
+  attempts int not null default 0,
+  error text
+);
+create index if not exists outbox_pending_idx on public.outbox (created_at) where sent_at is null;
+alter table public.outbox enable row level security;
+revoke all on public.outbox from anon, authenticated;
+
+create or replace function public.enqueue_email(p_kind text, p_user uuid, p_admin boolean, p_data jsonb, p_throttle interval default null) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if p_throttle is not null and exists (select 1 from public.outbox o where o.kind = p_kind and o.user_id is not distinct from p_user
+        and o.to_admin = p_admin and o.created_at > now() - p_throttle) then return; end if;
+  insert into public.outbox(kind, user_id, to_admin, data) values (p_kind, p_user, p_admin, coalesce(p_data,'{}'::jsonb));
+end $$;
+revoke all on function public.enqueue_email(text,uuid,boolean,jsonb,interval) from public;
+
+create or replace function public.trg_request_email() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' then
+    if exists (select 1 from public.profiles p where p.user_id = new.teen_id and p.notify_email) then
+      perform public.enqueue_email('request_received', new.teen_id, false, jsonb_build_object('company', left(coalesce(new.company,'An employer'),80)), interval '6 hours');
+    end if;
+  elsif new.status = 'accepted' and old.status is distinct from 'accepted' then
+    perform public.enqueue_email('request_accepted', new.employer_id, false,
+      jsonb_build_object('name', left(coalesce((select display_name from public.profiles where user_id = new.teen_id),'A teen'),40)), null);
+  end if;
+  return null;
+end $$;
+drop trigger if exists interest_email on public.interest_requests;
+create trigger interest_email after insert or update of status on public.interest_requests for each row execute function public.trg_request_email();
+
+create or replace function public.trg_job_email() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' then
+    if new.status = 'pending' then perform public.enqueue_email('admin_new_job', null, true, '{}'::jsonb, interval '10 minutes'); end if;
+  elsif new.status is distinct from old.status and new.status in ('approved','rejected') and new.submitted_by is not null then
+    perform public.enqueue_email('job_' || new.status, new.submitted_by, false, jsonb_build_object('title', left(new.title,80)), null);
+  end if;
+  return null;
+end $$;
+drop trigger if exists job_email on public.jobs;
+create trigger job_email after insert or update of status on public.jobs for each row execute function public.trg_job_email();
+
+create or replace function public.trg_employer_email() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' then
+    perform public.enqueue_email('admin_new_employer', null, true, '{}'::jsonb, interval '10 minutes');
+  elsif new.status is distinct from old.status and new.status in ('verified','rejected') then
+    perform public.enqueue_email('employer_' || new.status, new.user_id, false, jsonb_build_object('company', left(new.company,80)), null);
+  end if;
+  return null;
+end $$;
+drop trigger if exists employer_email on public.employers;
+create trigger employer_email after insert or update of status on public.employers for each row execute function public.trg_employer_email();
+
+create or replace function public.trg_admin_ping() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  perform public.enqueue_email(tg_argv[0], null, true, '{}'::jsonb, interval '10 minutes'); return null;
+end $$;
+drop trigger if exists report_email on public.reports;
+create trigger report_email after insert on public.reports for each row execute function public.trg_admin_ping('admin_new_report');
+drop trigger if exists profile_report_email on public.profile_reports;
+create trigger profile_report_email after insert on public.profile_reports for each row execute function public.trg_admin_ping('admin_new_profile_report');
+drop trigger if exists message_email on public.contact_messages;
+create trigger message_email after insert on public.contact_messages for each row execute function public.trg_admin_ping('admin_new_contact');
+
+-- =====================================================================
 -- HOW YOU (THE ADMIN) USE IT
 --  * Table Editor -> jobs: new employer submissions have status = pending.
 --    Check the employer, then change status to approved (and tick employer_verified
@@ -343,5 +506,7 @@ grant insert on public.profile_reports to authenticated;
 --  * Table Editor -> employers: people who asked to browse teen profiles have status = pending.
 --    Check their company/website, then set status to verified (or rejected). Only verified can browse.
 --  * Table Editor -> profile_reports: reports about teen profiles. In profiles, tick hidden_by_admin to hide one.
+--  * BEST WAY: use the Admin page on the site. Make yourself an admin once by running this (with your login email):
+--        insert into public.admins (user_id) select id from auth.users where email = 'YOUR-LOGIN-EMAIL';
 -- You can add your own listings by inserting a row in jobs with status = approved.
 -- =====================================================================

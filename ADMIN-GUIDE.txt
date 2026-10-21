@@ -69,7 +69,54 @@ NEW IN v4
   * Practice notes and checklist progress live in user_data (columns checklist, practice). Only each user can read them.
 
 
-TEEN PROFILES AND EMPLOYER ACCESS (v5)  -  YOUR NEW DAILY JOBS
+USING THE ADMIN PAGE (v6)  -  START HERE
+  1. Make yourself an admin (one time). Sign up/in on the site with your admin email first. Then Supabase -> SQL Editor ->
+     New query, paste this with YOUR login email, and Run:
+         insert into public.admins (user_id) select id from auth.users where email = 'YOUR-LOGIN-EMAIL';
+     Refresh the site: More -> Admin appears. (Only people in the admins table ever see it. The database enforces this.)
+  2. Jobs tab: pending jobs with the employer's private contact email and apply link. Check the business is real, the
+     apply link goes to that business, pay is at least minimum wage, and the age is right. Then Approve, Approve and mark
+     verified (a badge teens see), or Reject. "Recently approved" lets you Take down a listing later.
+  3. Employers tab: people asking to browse teen profiles. Open their website, then Verify or Reject. You can remove access later.
+  4. Reports & messages tab: reported profiles (Hide this profile), reported job listings, and contact messages (with their
+     email to reply). Press Mark handled when done.
+  5. Profiles tab: every profile, searchable. Hide or Unhide. Check it now and then for anything inappropriate.
+
+EMAIL ALERTS (v6)  -  OPTIONAL, ABOUT 15 MINUTES
+  How it works: when something happens (new job, new employer, new report, a request to a teen, an approval) the database adds a
+  row to a table called outbox. A small function (supabase/functions/send-emails/index.ts) sends those rows as emails.
+  Honest limits: free email services only deliver to arbitrary people (teens, employers) from a domain YOU own. Without one,
+  you can still get alerts yourself. So there are two stages:
+
+  STAGE 1: ALERTS TO YOU (free, no domain)
+   1. resend.com -> sign up with the email where you want alerts. Dashboard -> API Keys -> Create API Key -> copy it.
+   2. Supabase -> Edge Functions -> Deploy a new function -> Via Editor. Name it exactly: send-emails
+      Delete the sample code, paste ALL of supabase/functions/send-emails/index.ts from this folder, click Deploy.
+   3. Supabase -> Edge Functions -> Secrets (Edge Function Secrets). Add these four, then Save:
+         MAIL_API_KEY  = the Resend key from step 1
+         MAIL_FROM     = Jobly <onboarding@resend.dev>
+         ADMIN_EMAIL   = the SAME email you used to sign up to Resend (Resend's test sender only delivers to that address)
+         SITE_URL      = https://arshd8901-blip.github.io/jobly_full_website/     (or your new domain)
+   4. Supabase -> Integrations -> Cron (turn it on if asked) -> Create job. Name: send-emails. Schedule: every 5 minutes.
+      Type: Supabase Edge Function -> choose send-emails -> Create.
+      If the job's runs show a 401 error: Edge Functions -> send-emails -> Details/Settings -> turn OFF "Verify JWT".
+      That is safe here because the function only sends emails that are already queued, and returns just counts.
+   5. Test: on the live site, send a message from the Contact page. Within about 5 minutes you should get "[Jobly] New contact message".
+      Nothing? Edge Functions -> send-emails -> Logs. Also Table Editor -> outbox: the "error" column explains failures.
+   You'll get at most one alert of each kind per 10 minutes, so an attacker can't flood your inbox.
+
+  STAGE 2: EMAILS TO TEENS AND EMPLOYERS (needs a domain you own, about $10-15 a year)
+   1. Buy a domain (Namecheap, Cloudflare, Porkbun...). In Resend -> Domains -> Add Domain -> copy the DNS records into your
+      domain's DNS settings -> Verify. (The sender must be on that verified domain.)
+   2. Edit the secret MAIL_FROM to:  Jobly <hello@yourdomain.com>
+   3. Add the secret  SEND_USER_EMAILS = true
+   Now teens get "An employer is interested in you" (no message text, no contact details), employers get "A teen accepted" and
+   approval/rejection notices. Until you do this, those emails are skipped (not stored up), and teens still see requests
+   in My profile.
+   Alternative: Brevo (set secret MAIL_PROVIDER = brevo and a Brevo API key). Brevo also needs your own domain for good delivery.
+   Note: Supabase's sign-up/password emails are separate; see GROWTH-GUIDE.txt (SMTP) for those.
+
+TEEN PROFILES AND EMPLOYER ACCESS (v5)  -  THE SAME TASKS BY HAND IN THE TABLE EDITOR
   1. VERIFY EMPLOYERS. Supabase -> Table Editor -> employers. New rows are status = pending. Look at the company and
      website (open the site, check it is a real business, ideally reply to them through the Contact route you trust).
      Set status = verified to let them browse teen profiles, or rejected. Only verified employers can see profiles.

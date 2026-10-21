@@ -429,6 +429,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 .btn.danger{background:var(--badbg);color:var(--bad);border:1.5px solid var(--bad)}
 .rowbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .togrow{display:grid;gap:8px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel)}
+#ad-tabs{flex-wrap:wrap;max-width:100%;border-radius:18px}.job-adm{display:grid;gap:8px;padding:16px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;margin-top:12px}.job-adm h3{margin:0;font-size:1.05rem}.job-adm p{margin:0;font-size:.9rem;overflow-wrap:anywhere}.job-adm .meta{display:flex;flex-wrap:wrap;gap:6px}.adm-h{margin:22px 0 4px;font-size:1rem}
 </style>
 </head>
 <body>
@@ -742,6 +743,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 <div class="togrow">
 <label class="checkrow"><input type="checkbox" id="pf-visible"><span>Show my profile to verified employers</span></label>
 <label class="checkrow"><input type="checkbox" id="pf-share"><span>Also share my resume (without my email, phone or links)</span></label>
+<label class="checkrow"><input type="checkbox" id="pf-notify" checked><span>Email me when an employer sends a request</span></label>
 <span class="hint">Your shared resume is a copy. It updates each time you press Save.</span>
 </div>
 <label>Email to give an employer only after you accept their request<input id="pf-email" type="email" maxlength="120" autocomplete="email" placeholder="you@example.com"><span class="hint">Employers can't see this until you say yes. Leave it blank if you don't want to share one.</span></label>
@@ -774,6 +776,15 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 <p class="hint" id="tl-count" style="margin-top:8px"></p></div>
 <div class="pgrid" id="tl-list" style="margin-top:16px"></div>
 <div class="panel" style="margin-top:18px"><h3>Requests you've sent</h3><p class="sub">Contact details appear here only after a teen accepts. You can send up to 20 requests a day.</p><div id="tl-sent"></div></div>
+</div>
+</div></section>
+
+<section class="section alt page" id="admin"><div class="wrap">
+<div class="section-head"><div><span class="eyebrow">Admin</span><h2>Review queue</h2><p>Only Jobly admins can open this page. Approve jobs and employers, handle reports, and hide profiles.</p></div><div class="head-tools"><button class="btn light small" id="ad-refresh" type="button">Refresh</button></div></div>
+<div class="banner hidden" id="ad-gate"></div>
+<div class="hidden" id="ad-main">
+<div class="seg" id="ad-tabs" role="group" aria-label="Admin sections" style="margin-bottom:16px"></div>
+<div id="ad-panel" aria-live="polite"></div>
 </div>
 </div></section>
 </main>
@@ -824,6 +835,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--brand-bg)}
 <li>Without an account, your resume, availability and tracker stay on your own device. If you sign in, they're saved to your account so they work on other devices, and only you can read them.</li>
 <li>We don't sell your information. Employers can't see anything about you unless you make a profile and switch it on. Then only employers we've verified can see what you chose to show: the name you typed, a general area, a short bio, your interests, when you're free, and a resume if you share one. There's no photo, school, address, phone number or email.</li>
 <li>Employers can't message you directly. They send a request through Jobly and you decide. Your email is shared with an employer only if you accept their request, and you can block, decline, switch your profile off or delete it at any time.</li>
+<li>If you have a profile, we may email your account address when an employer sends you a request. The email never includes their message or any contact details, and you can turn it off on your profile page. We also email employers about decisions on their listings and requests.</li>
 <li>Reports and messages you send us are stored so we can respond to them.</li>
 <li>You can erase your saved data at any time with "Erase my saved data". To delete your account, use the Contact page and choose "Delete my data". Parents or guardians may also contact us.</li></ul>
 <h3>Terms</h3>
@@ -1371,13 +1383,15 @@ if (authClient) {
 const NAV_MAIN = [["find-jobs", "Find jobs"], ["match", "Find my match"], ["resume", "Resume builder"], ["tracker", "My applications"]];
 const NAV_READY = [["checklist", "First-job checklist"], ["interview", "Interview practice"], ["profile", "My profile"], ["learn", "Guides"]];
 const NAV_MORE = [["seasonal", "Summer & seasonal"], ["safety", "Safety & parents"], ["employers", "For employers"], ["talent", "Find talent"], ["faq", "FAQ"], ["about", "About"], ["contact", "Contact"]];
+let isAdmin = false;
+const moreItems = () => (isAdmin ? [...NAV_MORE, ["admin", "Admin"]] : NAV_MORE);
 function renderNav() {
   const nav = $("navlinks"); nav.replaceChildren(); NAV_MAIN.forEach(([id, l]) => nav.append(el("a", { href: "#" + id, text: l })));
-  [["Get ready", NAV_READY], ["More", NAV_MORE]].forEach(([label, items]) => nav.append(el("details", { class: "dd" }, el("summary", {}, label, icon("chev")), el("div", { class: "dd-menu" }, items.map(([id, l]) => el("a", { href: "#" + id, text: l }))))));
+  [["Get ready", NAV_READY], ["More", moreItems()]].forEach(([label, items]) => nav.append(el("details", { class: "dd" }, el("summary", {}, label, icon("chev")), el("div", { class: "dd-menu" }, items.map(([id, l]) => el("a", { href: "#" + id, text: l }))))));
 }
 function renderMenu() {
   const box = $("menu-list"); box.replaceChildren(); box.append(el("a", { href: "#home", text: "Home" }));
-  [["Find a job", NAV_MAIN], ["Get ready", NAV_READY], ["More", NAV_MORE]].forEach(([h, items]) => { box.append(el("h4", { text: h })); items.forEach(([id, l]) => box.append(el("a", { href: "#" + id, text: l }))); });
+  [["Find a job", NAV_MAIN], ["Get ready", NAV_READY], ["More", moreItems()]].forEach(([h, items]) => { box.append(el("h4", { text: h })); items.forEach(([id, l]) => box.append(el("a", { href: "#" + id, text: l }))); });
 }
 function closeDropdowns() { document.querySelectorAll("details.dd[open]").forEach(d => d.removeAttribute("open")); }
 function markNav(id) {
@@ -1611,7 +1625,7 @@ function sharedResume() {
 
 /* ----- teen side ----- */
 let myProfile = null, myContact = "", myEmployer = null, talent = [], sentReqs = [];
-function onUserChanged() { myProfile = null; myContact = ""; myEmployer = null; talent = []; sentReqs = []; ["tl-list", "tl-sent", "tm-body", "pf-inbox"].forEach(id => $(id).replaceChildren()); $("tl-kw").value = ""; $("tl-cat").value = ""; $("tl-res").checked = false; $("pf-notice").classList.remove("show"); const tm = $("talent-modal"); if (tm.classList.contains("open")) closeModal(tm); fillPf(); const id = (document.querySelector(".page.active") || {}).id; if (id === "profile") loadMyProfile(); else renderPfGate(); if (id === "talent") loadEmployer(); }
+function onUserChanged() { myProfile = null; myContact = ""; myEmployer = null; talent = []; sentReqs = []; ["tl-list", "tl-sent", "tm-body", "pf-inbox"].forEach(id => $(id).replaceChildren()); $("tl-kw").value = ""; $("tl-cat").value = ""; $("tl-res").checked = false; $("pf-notice").classList.remove("show"); const tm = $("talent-modal"); if (tm.classList.contains("open")) closeModal(tm); fillPf(); isAdmin = false; adData = null; $("ad-panel").replaceChildren(); renderNav(); renderMenu(); const id = (document.querySelector(".page.active") || {}).id; checkAdmin(); if (id === "profile") loadMyProfile(); else renderPfGate(); if (id === "talent") loadEmployer(); }
 function gateMessage(box, text, withSignIn) { box.replaceChildren(text, ...(withSignIn ? [" ", el("button", { class: "btn small", type: "button", onclick: openAuth, text: "Sign in" })] : [])); box.classList.remove("hidden"); }
 function renderPfGate() {
   const ok = !!authClient && !!currentUser, g = $("pf-gate"); $("pf-fields").disabled = !ok; g.classList.toggle("hidden", ok);
@@ -1621,7 +1635,7 @@ function renderPfGate() {
 }
 function readPf() {
   return { display_name: $("pf-name").value.trim(), area: $("pf-area").value.trim() || null, bio: $("pf-bio").value.trim() || null,
-    interests: [...$("pf-interests").querySelectorAll("input:checked")].map(i => i.value).slice(0, 6), visible: $("pf-visible").checked, share_resume: $("pf-share").checked };
+    interests: [...$("pf-interests").querySelectorAll("input:checked")].map(i => i.value).slice(0, 6), visible: $("pf-visible").checked, share_resume: $("pf-share").checked, notify_email: $("pf-notify").checked };
 }
 function renderPfPreview() {
   const p = readPf(); $("pf-bio-count").textContent = String($("pf-bio").value.length);
@@ -1631,7 +1645,7 @@ function renderPfPreview() {
 function fillPf() {
   const p = myProfile; $("pf-name").value = p ? p.display_name : ""; $("pf-area").value = p && p.area ? p.area : ""; $("pf-bio").value = p && p.bio ? p.bio : "";
   const cur = p ? okInterests(p.interests) : []; $("pf-interests").replaceChildren(...CATS.map(c => el("label", {}, el("input", { type: "checkbox", value: c.id, checked: cur.includes(c.id), onchange: renderPfPreview }), c.label)));
-  $("pf-visible").checked = !!(p && p.visible); $("pf-share").checked = !!(p && p.share_resume); $("pf-consent").checked = !!p;
+  $("pf-visible").checked = !!(p && p.visible); $("pf-share").checked = !!(p && p.share_resume); $("pf-notify").checked = p ? p.notify_email !== false : true; $("pf-consent").checked = !!p;
   $("pf-email").value = myContact || (currentUser && currentUser.email) || ""; renderPfGate();
 }
 async function loadMyProfile() {
@@ -1654,6 +1668,7 @@ async function savePf(e) {
   const row = { ...f, age_group: db.age, avail: db.avail.slice(0, 40) }; let r;
   if (myProfile) r = await authClient.from("profiles").update(row).eq("user_id", currentUser.id);
   else r = await authClient.from("profiles").insert({ user_id: currentUser.id, ...row, consented_at: new Date().toISOString() });
+  if (r.error && /notify_email/.test(r.error.message || "")) { delete row.notify_email; r = myProfile ? await authClient.from("profiles").update(row).eq("user_id", currentUser.id) : await authClient.from("profiles").insert({ user_id: currentUser.id, ...row, consented_at: new Date().toISOString() }); }
   if (r.error) { note(msg, /schema cache|relation|does not exist|column/i.test(r.error.message || "") ? "The database needs the latest update. Run supabase/schema.sql in Supabase (see SETUP-GUIDE)." : "Couldn't save your profile. Check each box and try again.", true); return; }
   if (resume) await authClient.from("profile_resumes").upsert({ user_id: currentUser.id, resume }); else await authClient.from("profile_resumes").delete().eq("user_id", currentUser.id);
   if (email) await authClient.from("profile_contact").upsert({ user_id: currentUser.id, email }); else await authClient.from("profile_contact").delete().eq("user_id", currentUser.id);
@@ -1766,8 +1781,98 @@ function initProfiles() {
   $("tl-cat").append(...CATS.map(c => el("option", { value: c.id, text: c.label })));
   $("pf-form").addEventListener("submit", savePf); $("pf-delete").addEventListener("click", deletePf);
   ["pf-name", "pf-area", "pf-bio"].forEach(id => $(id).addEventListener("input", renderPfPreview)); ["pf-visible", "pf-share"].forEach(id => $(id).addEventListener("change", renderPfPreview));
-  $("tl-apply-form").addEventListener("submit", applyEmployer); ["tl-kw"].forEach(id => $(id).addEventListener("input", renderTalent)); ["tl-cat", "tl-res"].forEach(id => $(id).addEventListener("change", renderTalent));
+  $("tl-apply-form").addEventListener("submit", applyEmployer); ["tl-kw"].forEach(id => $(id).addEventListener("input", renderTalent)); ["tl-cat", "tl-res"].forEach(id => $(id).addEventListener("change", renderTalent)); $("ad-refresh").addEventListener("click", loadAdmin);
   fillPf();
+}
+
+/* ---------- admin page ---------- */
+let adTab = "jobs", adData = null;
+async function checkAdmin() {
+  let ok = false;
+  if (authClient && currentUser) { const { data } = await authClient.from("admins").select("user_id").eq("user_id", currentUser.id).maybeSingle(); ok = !!data; }
+  const changed = ok !== isAdmin; isAdmin = ok;
+  if (changed) { renderNav(); renderMenu(); } const cur = (document.querySelector(".page.active") || {}).id; markNav(cur || "home"); if (cur === "admin") loadAdmin();
+}
+function adGate() {
+  const g = $("ad-gate"), m = $("ad-main"); m.classList.add("hidden"); g.classList.add("hidden");
+  if (!authClient) { gateMessage(g, "The site isn't connected to its database yet."); return false; }
+  if (!currentUser) { gateMessage(g, "Sign in with your admin account.", true); return false; }
+  if (!isAdmin) { gateMessage(g, "This page is only for Jobly admins. If you own Jobly, add your account to the admins table (see ADMIN-GUIDE.txt)."); return false; }
+  m.classList.remove("hidden"); return true;
+}
+async function loadAdmin() {
+  if (!adGate()) return;
+  const q = (t, f) => f(authClient.from(t).select("*"));
+  const [jp, ja, ec, er, rp, pr, ms, pf] = await Promise.all([
+    q("jobs", x => x.eq("status", "pending").order("created_at", { ascending: false }).limit(100)), q("jobs", x => x.eq("status", "approved").order("created_at", { ascending: false }).limit(30)),
+    q("employers", x => x.eq("status", "pending").order("created_at", { ascending: false }).limit(100)), q("employers", x => x.eq("status", "verified").order("created_at", { ascending: false }).limit(100)),
+    q("reports", x => x.eq("handled", false).order("created_at", { ascending: false }).limit(100)), q("profile_reports", x => x.eq("handled", false).order("created_at", { ascending: false }).limit(100)),
+    q("contact_messages", x => x.eq("handled", false).order("created_at", { ascending: false }).limit(100)), q("profiles", x => x.order("updated_at", { ascending: false }).limit(200))]);
+  const failed = [jp, ja, ec, er, rp, pr, ms, pf].find(r => r.error);
+  if (failed) { $("ad-panel").replaceChildren(el("div", { class: "banner", text: "Couldn't load some admin data. Run the latest supabase/schema.sql in Supabase (see SETUP-GUIDE), then refresh." })); }
+  const pend = jp.data || [], contacts = {};
+  if (pend.length) { const c = await authClient.from("job_private").select("job_id,contact_email").limit(200); (c.data || []).forEach(r => { contacts[r.job_id] = r.contact_email; }); }
+  adData = { pending: pend, live: ja.data || [], contacts, empPending: ec.data || [], empVerified: er.data || [], reports: rp.data || [], profReports: pr.data || [], messages: ms.data || [], profiles: pf.data || [] };
+  renderAdmin();
+}
+function adCounts() { const d = adData || {}; return { jobs: (d.pending || []).length, employers: (d.empPending || []).length, reports: (d.reports || []).length + (d.profReports || []).length + (d.messages || []).length, profiles: (d.profiles || []).length }; }
+function renderAdmin() {
+  const c = adCounts(), tabs = $("ad-tabs"); tabs.replaceChildren();
+  [["jobs", "Jobs"], ["employers", "Employers"], ["reports", "Reports & messages"], ["profiles", "Profiles"]].forEach(([id, l]) => tabs.append(el("button", { type: "button", "aria-pressed": String(adTab === id), onclick: () => { adTab = id; renderAdmin(); }, text: l + (id !== "profiles" && c[id] ? " (" + c[id] + ")" : "") })));
+  const p = $("ad-panel"); if (!adData) { p.replaceChildren(); return; } p.replaceChildren();
+  ({ jobs: adJobs, employers: adEmployers, reports: adReports, profiles: adProfiles })[adTab](p);
+}
+async function adAct(label, promise, okMsg) { const r = await promise; if (r && r.error) { toast("Couldn't " + label + ". " + (/not allowed/i.test(r.error.message || "") ? "This account isn't an admin." : "Please try again."), "err"); return false; } toast(okMsg); await loadAdmin(); return true; }
+const adDate = d => { try { return new Date(d).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; } };
+const safeLink = (u, text) => /^https:\/\//i.test(String(u || "")) ? el("a", { href: String(u), target: "_blank", rel: "noopener noreferrer", text: text || String(u), style: "text-decoration:underline" }) : el("span", { text: "(no link)" });
+function adJobCard(j, contact, live) {
+  const hrs = j.hrs_min + "–" + j.hrs_max + " hrs/wk", pay = money(Number(j.min_pay)) + "–" + money(Number(j.max_pay)) + "/hr";
+  return el("div", { class: "job-adm" }, el("h3", { text: j.title + " · " + j.company }),
+    el("div", { class: "meta" }, [j.city + (j.zip ? " " + j.zip : ""), pay, hrs, j.min_age + "+", j.job_type, j.work_style, j.season, j.employer_verified ? "verified" : null].filter(Boolean).map(x => el("span", { class: "tag", text: String(x) }))),
+    el("p", { text: String(j.description) }), j.tasks && j.tasks.length ? el("p", { class: "hint", text: "Tasks: " + j.tasks.join(" · ") }) : null, j.restrictions ? el("p", { class: "hint", text: "Under-18 limits: " + j.restrictions }) : null,
+    el("p", { class: "hint" }, "Apply link: ", safeLink(j.apply_url), contact ? [" · Contact: ", el("a", { href: "mailto:" + contact, text: contact, style: "text-decoration:underline" })] : null, " · " + adDate(j.created_at)),
+    live ? el("div", { class: "rowbtns" }, el("button", { class: "btn light small danger", type: "button", text: "Take down", onclick: async () => { if (await askConfirm("Take down “" + j.title + "”? It will disappear from the site.", "Take down")) adAct("take that job down", authClient.rpc("admin_review_job", { p_id: j.id, p_status: "rejected", p_verified: false }), "Taken down"); } }))
+      : el("div", { class: "rowbtns" }, el("button", { class: "btn small", type: "button", text: "Approve", onclick: () => adAct("approve", authClient.rpc("admin_review_job", { p_id: j.id, p_status: "approved", p_verified: false }), "Approved ✓") }),
+        el("button", { class: "btn small", type: "button", text: "Approve and mark verified", onclick: () => adAct("approve", authClient.rpc("admin_review_job", { p_id: j.id, p_status: "approved", p_verified: true }), "Approved and verified ✓") }),
+        el("button", { class: "btn light small danger", type: "button", text: "Reject", onclick: async () => { if (await askConfirm("Reject “" + j.title + "”?", "Reject")) adAct("reject", authClient.rpc("admin_review_job", { p_id: j.id, p_status: "rejected", p_verified: false }), "Rejected"); } })));
+}
+function adJobs(p) {
+  const d = adData; p.append(el("p", { class: "hint", text: "Before approving, check: the business is real, the apply link goes to that business (https), pay is at least minimum wage, the minimum age is correct, and nothing asks teens for money or personal details." }));
+  if (!d.pending.length) p.append(emptyState("Nothing waiting", "New employer submissions will show up here."));
+  d.pending.forEach(j => p.append(adJobCard(j, d.contacts[j.id], false)));
+  p.append(el("h3", { class: "adm-h", text: "Recently approved (latest 30)" })); if (!d.live.length) p.append(el("p", { class: "hint", text: "None yet." }));
+  d.live.forEach(j => p.append(adJobCard(j, null, true)));
+}
+function adEmployers(p) {
+  const d = adData; p.append(el("p", { class: "hint", text: "Open their website, make sure it's a real business that hires teens, then verify. Only verified employers can browse teen profiles." }));
+  if (!d.empPending.length) p.append(emptyState("No one is waiting", "Employers who ask for talent-search access appear here."));
+  d.empPending.forEach(e => p.append(el("div", { class: "job-adm" }, el("h3", { text: String(e.company) }), el("p", { class: "hint" }, "Website: ", safeLink(e.website), " · " + adDate(e.created_at)), e.note ? el("p", { text: String(e.note) }) : null,
+    el("div", { class: "rowbtns" }, el("button", { class: "btn small", type: "button", text: "Verify", onclick: () => adAct("verify", authClient.rpc("admin_review_employer", { p_user: e.user_id, p_status: "verified" }), "Verified ✓") }),
+      el("button", { class: "btn light small danger", type: "button", text: "Reject", onclick: async () => { if (await askConfirm("Reject " + e.company + "?", "Reject")) adAct("reject", authClient.rpc("admin_review_employer", { p_user: e.user_id, p_status: "rejected" }), "Rejected"); } })))));
+  p.append(el("h3", { class: "adm-h", text: "Verified employers" })); if (!d.empVerified.length) p.append(el("p", { class: "hint", text: "None yet." }));
+  d.empVerified.forEach(e => p.append(el("div", { class: "job-adm" }, el("h3", { text: String(e.company) }), el("p", { class: "hint" }, "Website: ", safeLink(e.website)),
+    el("div", { class: "rowbtns" }, el("button", { class: "btn light small danger", type: "button", text: "Remove access", onclick: async () => { if (await askConfirm("Remove " + e.company + "'s access to teen profiles?", "Remove")) adAct("remove access", authClient.rpc("admin_review_employer", { p_user: e.user_id, p_status: "rejected" }), "Access removed"); } })))));
+}
+function adReports(p) {
+  const d = adData, handled = (kind, id) => el("button", { class: "btn light small", type: "button", text: "Mark handled", onclick: () => adAct("update that", authClient.rpc("admin_mark_handled", { p_kind: kind, p_id: id, p_handled: true }), "Marked handled") });
+  p.append(el("h3", { class: "adm-h", text: "Reported profiles (" + d.profReports.length + ")" })); if (!d.profReports.length) p.append(el("p", { class: "hint", text: "None." }));
+  d.profReports.forEach(r => { const pr = d.profiles.find(x => x.user_id === r.profile_id); p.append(el("div", { class: "job-adm" }, el("h3", { text: pr ? pr.display_name : "Profile (already deleted)" }), el("p", { text: r.reason + (r.details ? ": " + r.details : "") }), pr && pr.bio ? el("p", { class: "hint", text: "Bio: " + pr.bio }) : null, el("p", { class: "hint", text: adDate(r.created_at) }),
+    el("div", { class: "rowbtns" }, pr && !pr.hidden_by_admin ? el("button", { class: "btn small danger", type: "button", text: "Hide this profile", onclick: () => adAct("hide", authClient.rpc("admin_set_profile_hidden", { p_user: r.profile_id, p_hidden: true }), "Profile hidden") }) : (pr ? el("span", { class: "chip declined", text: "Hidden" }) : null), handled("profile_report", r.id)))); });
+  p.append(el("h3", { class: "adm-h", text: "Reported job listings (" + d.reports.length + ")" })); if (!d.reports.length) p.append(el("p", { class: "hint", text: "None." }));
+  d.reports.forEach(r => p.append(el("div", { class: "job-adm" }, el("h3", { text: r.reason }), el("p", { text: r.details || "(no details)" }), el("p", { class: "hint", text: "Job ref: " + r.job_ref + (r.is_sample ? " (sample job)" : "") + " · " + adDate(r.created_at) }), el("div", { class: "rowbtns" }, handled("report", r.id)))));
+  p.append(el("h3", { class: "adm-h", text: "Messages (" + d.messages.length + ")" })); if (!d.messages.length) p.append(el("p", { class: "hint", text: "None." }));
+  d.messages.forEach(m => p.append(el("div", { class: "job-adm" }, el("h3", { text: m.topic + " · " + m.name }), el("p", { text: m.message }), el("p", { class: "hint" }, el("a", { href: "mailto:" + m.email, text: m.email, style: "text-decoration:underline" }), " · " + adDate(m.created_at)), el("div", { class: "rowbtns" }, handled("message", m.id)))));
+}
+function adProfiles(p) {
+  const d = adData, q = el("input", { placeholder: "Search by name or area", maxlength: "40", "aria-label": "Search profiles" }), list = el("div", {});
+  const draw = () => { const k = q.value.trim().toLowerCase(); list.replaceChildren(); const rows = d.profiles.filter(x => !k || ((x.display_name || "") + " " + (x.area || "")).toLowerCase().includes(k));
+    if (!rows.length) list.append(emptyState("No profiles", "Profiles teens create appear here.")); 
+    rows.forEach(x => list.append(el("div", { class: "job-adm" }, el("div", { class: "phead" }, avatarIni(x.display_name, "lg"), el("div", {}, el("h3", { text: x.display_name }), el("span", { class: "hint", text: "Age " + x.age_group + (x.area ? " · " + x.area : "") }))),
+      el("div", { class: "meta" }, el("span", { class: "tag " + (x.visible ? "good" : ""), text: x.visible ? "Visible to employers" : "Private" }), x.share_resume ? el("span", { class: "tag check", text: "Resume shared" }) : null, x.hidden_by_admin ? el("span", { class: "chip declined", text: "Hidden by admin" }) : null),
+      x.bio ? el("p", { text: x.bio }) : null,
+      el("div", { class: "rowbtns" }, x.hidden_by_admin ? el("button", { class: "btn light small", type: "button", text: "Unhide", onclick: () => adAct("unhide", authClient.rpc("admin_set_profile_hidden", { p_user: x.user_id, p_hidden: false }), "Profile unhidden") })
+        : el("button", { class: "btn light small danger", type: "button", text: "Hide profile", onclick: async () => { if (await askConfirm("Hide " + x.display_name + "'s profile from employers? They can't undo this.", "Hide")) adAct("hide", authClient.rpc("admin_set_profile_hidden", { p_user: x.user_id, p_hidden: true }), "Profile hidden"); } }))))); };
+  q.addEventListener("input", draw); p.append(el("label", { class: "form", style: "max-width:380px" }, "Search", q), list); draw();
 }
 
 /* ---------- page router ---------- */
@@ -1782,7 +1887,7 @@ function showPage(hash) {
   const page = target ? (target.classList.contains("page") ? target : target.closest(".page")) : null, active = page || $("home");
   PAGES.forEach(x => x.classList.toggle("active", x === active));
   markNav(active.id); closeDropdowns(); stopTimer();
-  if (active.id === "profile") loadMyProfile(); if (active.id === "talent") loadEmployer();
+  if (active.id === "profile") loadMyProfile(); if (active.id === "talent") loadEmployer(); if (active.id === "admin") loadAdmin();
   document.title = active.id === "home" ? "Jobly — Your first job starts here" : "Jobly — " + (active.querySelector("h2, h1") || { textContent: "" }).textContent.slice(0, 40);
   if (p.job) { pendingJob = p.job; tryOpenPending(); }
   if (target && target !== active && !p.job) target.scrollIntoView(); else window.scrollTo(0, 0);

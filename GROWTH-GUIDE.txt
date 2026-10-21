@@ -63,3 +63,9 @@ BEFORE YOU PROMOTE TEEN PROFILES (important)
   * Decide who is responsible for reviewing employers and reports, and how fast (aim for 1-2 days).
   * Consider a short written employer agreement, and keep a record of who you verified and how.
   * Photos are intentionally NOT supported (initials only). Don't add photos until you can moderate them.
+
+
+EMAIL AND DOMAIN (decision for later)
+  A domain you own (about $10-15/year) unlocks three things at once: a nicer address than github.io, emails to teens and
+  employers (verified sender), and reliable sign-up emails. It is the best next small spend. Follow the custom-domain steps
+  above, then Stage 2 in ADMIN-GUIDE.txt.

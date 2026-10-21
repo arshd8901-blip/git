@@ -1,9 +1,18 @@
-JOBLY v5: first-job website for ages 16-18
+JOBLY v6: first-job website for ages 16-18
 
 START HERE: SETUP-GUIDE.txt   (then ADMIN-GUIDE.txt for running the site, GROWTH-GUIDE.txt for next steps)
 ALREADY RUNNING v3 or v4? Read "UPDATING" in SETUP-GUIDE.txt (3 steps, about 5 minutes).
 
-WHAT'S NEW IN V5: TEEN PROFILES AND TALENT SEARCH (optional for teens)
+WHAT'S NEW IN V6: ADMIN PAGE + EMAIL ALERTS
+- Admin page (More -> Admin, only for accounts you add to the admins table): approve/reject jobs (with the employer's private
+  contact email and apply link shown), verify employers, handle job/profile reports and contact messages, hide profiles.
+  Every admin action runs through a checked database function; a non-admin can't use them even by calling them directly.
+- Email alerts: events are queued in the database (outbox). The send-emails function (supabase/functions/send-emails)
+  turns them into emails: alerts to YOU work today with a free Resend account and no domain.
+  Emails to teens and employers are built but stay OFF until you have a verified sending domain (see ADMIN-GUIDE.txt).
+- Teens can turn email alerts off on their profile. Emails never include request messages or contact details.
+
+WHAT WAS NEW IN V5: TEEN PROFILES AND TALENT SEARCH (optional for teens)
 - Teens can make a profile: a name they type (first name + last initial is safest), city, short bio, interests, and
   an optional shared resume. Their "picture" is their initials (Jackson D. = JD). No photos, school, address, phone or email.
 - Private by default. Only EMPLOYERS YOU VERIFY can browse profiles (Find talent page). You verify them in Supabase.
@@ -29,6 +38,6 @@ Site basics
 
 STILL NEEDS YOU (see GROWTH-GUIDE.txt): real employers and listings, a real email service (SMTP),
 custom domain (optional), lawyer review of privacy/terms, and someone to review jobs and reports.
-NOT BUILT YET: an admin page (you still approve jobs in the Supabase Table Editor) and emailed alerts/reminders.
+NOT BUILT YET: scheduled reminder emails (e.g. application deadlines), and emails to teens/employers until you verify a domain.
 NOTES: the map is a simple schematic, not a street map. Illustrations/initials are used instead of photos
 so no one's picture or logo is used without permission.
