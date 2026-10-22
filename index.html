@@ -545,6 +545,23 @@ body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans
 @media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:44px}.stub-wrap{max-width:460px}}
 @media(max-width:560px){.hero h1{font-size:clamp(2.7rem,14vw,3.8rem)}.stub-sticker.a{left:-6px}.stub-sticker.b{right:-4px}}
 @media(prefers-reduced-motion:reduce){.mq-track,.stub{animation:none!important}.marquee{overflow-x:auto}}
+
+/* account menu */
+.acct{position:relative}
+.acct-btn{all:unset;cursor:pointer;border-radius:14px;display:block;line-height:0}
+.acct-btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.acct-btn .avatar{width:40px;height:40px;border-radius:50%;font-size:.95rem;transition:transform .15s,box-shadow .15s;box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--line2)}
+.acct-btn:hover .avatar{transform:scale(1.06)}
+.acct-menu{position:absolute;right:0;top:calc(100% + 10px);width:272px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:8px;z-index:50;animation:rise .18s both}
+.acct-who{display:flex;gap:12px;align-items:center;padding:10px 10px 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.acct-who .avatar{width:42px;height:42px;border-radius:50%;font-size:1rem}
+.acct-who strong{display:block;line-height:1.2;overflow-wrap:anywhere}
+.acct-who small{color:var(--muted);font-size:.8rem;overflow-wrap:anywhere}
+.acct-menu a,.acct-menu button.mi{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:10px;font-weight:600;font-size:.94rem;cursor:pointer;text-decoration:none;color:var(--ink)}
+.acct-menu a:hover,.acct-menu button.mi:hover{background:var(--panel)}
+.acct-menu a:focus-visible,.acct-menu button.mi:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.acct-menu .ico{width:1.1em;height:1.1em;color:var(--muted)}
+.acct-menu hr{border:0;border-top:1px solid var(--line);margin:6px 0}
 </style>
 </head>
 <body>
@@ -574,7 +591,7 @@ body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans
 <header class="topbar"><div class="wrap nav">
 <a href="#home" class="logo" aria-label="Jobly home">Jobly<span>.</span></a>
 <nav class="navlinks" id="navlinks" aria-label="Main"></nav>
-<div class="nav-actions"><button class="icon-btn" id="theme-btn" type="button" aria-label="Switch to dark mode"></button><button class="btn small" id="open-login" type="button">Sign in</button></div>
+<div class="nav-actions"><button class="icon-btn" id="theme-btn" type="button" aria-label="Switch to dark mode"></button><button class="btn small" id="open-login" type="button">Sign in</button><div class="acct hidden" id="acct"><button class="acct-btn" id="acct-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Your account menu"></button><div class="acct-menu hidden" id="acct-menu" role="menu"></div></div></div>
 </div></header>
 
 <main id="main">
@@ -1465,10 +1482,10 @@ function refreshAuthView() {
 }
 function showUser(user) {
   const changed = (user ? user.id : null) !== (currentUser ? currentUser.id : null); currentUser = user;
-  $("open-login").textContent = user ? "Account" : "Sign in";
+  $("open-login").textContent = "Sign in";
   $("account-status").textContent = user ? "Signed in as " + (user.email || "your account") + (user.email_confirmed_at ? " · Email verified" : " · Check your email for verification") : (authConfigured ? "You are signed out." : "Authentication is not configured yet.");
   if (authMode !== "update") setAuthMode(authMode === "reset" || authMode === "signup" ? authMode : "signin"); else refreshAuthView();
-  renderEmpGate(); if (changed) onUserChanged();
+  renderEmpGate(); if (changed) onUserChanged(); refreshAcct(); if (user && changed) loadAcctName();
   if (user && changed && authClient && authMode !== "update") setTimeout(async () => { await pullCloud(user); loadMySubs(); }, 0);
   if (!user) { syncedUser = null; setSync(""); }
 }
@@ -1501,6 +1518,37 @@ if (authClient) {
   authClient.auth.getSession().then(({ data }) => showUser(data.session ? data.session.user : null));
   authClient.auth.onAuthStateChange((event, session) => { if (event === "PASSWORD_RECOVERY") { authMode = "update"; currentUser = session ? session.user : null; openAuth(); return; } showUser(session ? session.user : null); });
 } else showUser(null);
+
+
+/* ---------- account menu (avatar in header) ---------- */
+function acctName() { if (myProfile && myProfile.display_name) return myProfile.display_name; const em = currentUser && currentUser.email ? currentUser.email.split("@")[0] : ""; return em.replace(/[._-]+/g, " ").trim() || "You"; }
+function refreshAcct() {
+  const box = $("acct"), signed = !!currentUser;
+  box.classList.toggle("hidden", !signed); $("open-login").classList.toggle("hidden", signed);
+  if (!signed) { $("acct-menu").classList.add("hidden"); $("acct-btn").setAttribute("aria-expanded", "false"); return; }
+  const nm = acctName(), hasP = !!myProfile;
+  $("acct-btn").replaceChildren(avatarIni(nm, 40)); $("acct-btn").setAttribute("aria-label", "Account menu for " + nm);
+  const m = $("acct-menu"); m.replaceChildren(
+    el("div", { class: "acct-who" }, avatarIni(nm, 42), el("div", {}, el("strong", { text: nm }), el("small", { text: currentUser.email || "" }))),
+    el("a", { href: "#profile", role: "menuitem" }, icon("user"), hasP ? "Edit your profile" : "Create your profile"),
+    el("a", { href: "#tracker", role: "menuitem" }, icon("list"), "My applications"),
+    el("a", { href: "#checklist", role: "menuitem" }, icon("check"), "First-job checklist"),
+    el("a", { href: "#resume", role: "menuitem" }, icon("file"), "Resume builder"),
+    el("hr"),
+    el("button", { class: "mi", type: "button", id: "acct-pw", role: "menuitem" }, icon("shield"), "Account and password"),
+    el("button", { class: "mi", type: "button", id: "acct-out", role: "menuitem" }, icon("share"), "Sign out"));
+  $("acct-pw").addEventListener("click", () => { closeAcct(); openAuth(); });
+  $("acct-out").addEventListener("click", () => { closeAcct(); $("auth-signout").click(); });
+}
+function closeAcct() { $("acct-menu").classList.add("hidden"); $("acct-btn").setAttribute("aria-expanded", "false"); }
+$("acct-btn").addEventListener("click", () => { const m = $("acct-menu"), open = m.classList.contains("hidden"); m.classList.toggle("hidden", !open); $("acct-btn").setAttribute("aria-expanded", String(open)); if (open) { const f = m.querySelector("a"); if (f) f.focus(); } });
+$("acct-menu").addEventListener("click", e => { if (e.target.closest("a")) closeAcct(); });
+document.addEventListener("click", e => { if (!e.target.closest("#acct")) closeAcct(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("acct-menu").classList.contains("hidden")) { closeAcct(); $("acct-btn").focus(); } });
+async function loadAcctName() {
+  if (!authClient || !currentUser) return; const id = currentUser.id;
+  try { const r = await authClient.from("profiles").select("display_name").eq("user_id", id).maybeSingle(); if (currentUser && currentUser.id === id && r && r.data && !myProfile) { myProfile = Object.assign({}, r.data); refreshAcct(); } } catch (e) {}
+}
 
 /* ---------- navigation + menu ---------- */
 const NAV_MAIN = [["find-jobs", "Find jobs"], ["match", "Find my match"], ["resume", "Resume builder"], ["tracker", "My applications"]];
@@ -1765,7 +1813,7 @@ function renderPfPreview() {
   $("pf-vis-note").textContent = p.visible ? "This is what verified employers will see." : "Preview only. Your profile is hidden until you switch it on.";
   $("pf-preview").replaceChildren(profileCard({ ...p, age_group: db.age, avail: db.avail }, null));
 }
-function fillPf() {
+function fillPf() { try { refreshAcct(); } catch (e) {}
   const p = myProfile; $("pf-name").value = p ? p.display_name : ""; $("pf-area").value = p && p.area ? p.area : ""; $("pf-bio").value = p && p.bio ? p.bio : "";
   const cur = p ? okInterests(p.interests) : []; $("pf-interests").replaceChildren(...CATS.map(c => el("label", {}, el("input", { type: "checkbox", value: c.id, checked: cur.includes(c.id), onchange: renderPfPreview }), c.label)));
   $("pf-visible").checked = !!(p && p.visible); $("pf-share").checked = !!(p && p.share_resume); $("pf-notify").checked = p ? p.notify_email !== false : true; $("pf-consent").checked = !!p;
