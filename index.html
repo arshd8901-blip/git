@@ -745,7 +745,7 @@ body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans
 <button class="btn" type="submit">Add to tracker</button>
 </form>
 <div class="twocol" style="margin-top:26px">
-<div class="panel"><h3>Your Jobly account</h3><p class="sub">Sign in to keep your schedule, resume, tracker and saved searches across devices.</p><button class="btn" id="open-account" type="button">Sign in or create account</button><p class="hint" style="margin-top:12px" id="account-status">Authentication is not configured yet.</p><p class="hint" id="sync-status"></p></div>
+<div class="panel"><h3>Your Jobly account</h3><p class="sub" id="account-sub">Sign in to keep your schedule, resume, tracker and saved searches across devices.</p><button class="btn" id="open-account" type="button">Sign in or create account</button><p class="hint" style="margin-top:12px" id="account-status">Authentication is not configured yet.</p><p class="hint" id="sync-status"></p></div>
 <div class="panel"><h3>Your privacy</h3><p class="sub">Jobly is built for minors, so it keeps data collection to the minimum.</p><ul style="margin-left:18px;font-size:.9rem"><li>No home address, birthday or ID number is ever requested.</li><li>Your location is only used in your browser to sort jobs by distance.</li><li>Without an account, your data stays on this device. With an account, it's saved privately to you only.</li><li>Employers only see a profile if you create one and switch it on.</li></ul><div class="avail-actions"><button class="btn light small" id="erase" type="button">Erase my saved data</button><button class="btn light small" data-open-policy type="button">Privacy &amp; terms</button></div></div>
 </div>
 </div></section>
@@ -1482,7 +1482,7 @@ function refreshAuthView() {
 }
 function showUser(user) {
   const changed = (user ? user.id : null) !== (currentUser ? currentUser.id : null); currentUser = user;
-  $("open-login").textContent = "Sign in";
+  $("open-login").textContent = "Sign in"; $("open-account").textContent = user ? "Manage account or sign out" : "Sign in or create account"; $("account-sub").textContent = user ? "You're signed in. Your schedule, resume, tracker and saved searches sync to your account." : "Sign in to keep your schedule, resume, tracker and saved searches across devices.";
   $("account-status").textContent = user ? "Signed in as " + (user.email || "your account") + (user.email_confirmed_at ? " · Email verified" : " · Check your email for verification") : (authConfigured ? "You are signed out." : "Authentication is not configured yet.");
   if (authMode !== "update") setAuthMode(authMode === "reset" || authMode === "signup" ? authMode : "signin"); else refreshAuthView();
   renderEmpGate(); if (changed) onUserChanged(); refreshAcct(); if (user && changed) loadAcctName();
